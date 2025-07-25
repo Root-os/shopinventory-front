@@ -56,6 +56,7 @@ export interface Order {
   totalPrice: number
   createdAt: string
   updatedAt: string
+  createdBy?: string
 }
 
 export interface AuthContextType {

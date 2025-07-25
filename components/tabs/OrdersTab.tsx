@@ -2,13 +2,24 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+import { usePagination } from "@/hooks/usePagination"
 import { Plus } from "lucide-react"
 import { OrderForm } from "@/components/orders/OrderForm"
 import { OrderList } from "@/components/orders/OrderList"
-import { OrderDetails } from "@/components/orders/OrderDetails"
+import { OrderDetailsModal } from "@/components/orders/OrderDetailsModal"
 import type { Order, Item, Customer } from "@/types"
 import { orderService } from "@/services/orderService"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
+import { printReceipt, preparePrintableOrder } from "@/utils/printUtils"
 
 interface OrdersTabProps {
   orders: Order[]
@@ -18,11 +29,31 @@ interface OrdersTabProps {
   token: string
 }
 
+interface CreateOrderResponse {
+  id: number
+  customerName?: string
+  customerPhone?: string
+  customerId?: number
+  items: any[]
+  paid: number
+  paymentType: string
+  status: string
+  totalPrice: number
+  createdAt: string
+  updatedAt: string
+}
+
 export function OrdersTab({ orders, items, customers, onRefresh, token }: OrdersTabProps) {
   const [showOrderForm, setShowOrderForm] = useState(false)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [viewingOrder, setViewingOrder] = useState<Order | null>(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const { toast } = useToast()
+  const { user } = useAuth()
+  const { currentPage, totalPages, paginatedData, goToPage, goToNextPage, goToPreviousPage } = usePagination(
+    orders,
+    10
+  )
 
   const handleCreateOrder = async (orderData: any) => {
     try {
@@ -32,10 +63,47 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
         throw new Error("Authentication token is missing")
       }
 
-      await orderService.createOrder(orderData, token)
+      const createdOrder = (await orderService.createOrder(orderData, token)) as CreateOrderResponse
       toast({ title: "Success", description: "Order created successfully" })
+
+      // Refresh data first
+      await onRefresh()
+
+      // Find the created order from the refreshed data or create a fallback
+      const newOrder: Order = orders.find((order) => order.id === createdOrder.id) || {
+        id: createdOrder.id || Date.now(),
+        customerName: orderData.isNewCustomer ? orderData.customerName : createdOrder.customerName || null,
+        customerPhone: orderData.isNewCustomer ? orderData.customerPhone : createdOrder.customerPhone || null,
+        customerId: orderData.isNewCustomer ? undefined : orderData.customerId,
+        items: orderData.items,
+        paid: orderData.paid,
+        paymentType: orderData.paymentType as "Cash" | "Credit",
+        status: orderData.status as "Pending" | "Confirmed" | "Dispatched",
+        totalPrice: orderData.items.reduce((sum: number, item: any) => sum + item.quantity * item.price, 0),
+        createdAt: createdOrder.createdAt || new Date().toISOString(),
+        updatedAt: createdOrder.updatedAt || new Date().toISOString(),
+        createdBy: user?.fullName || "Unknown User", // Add creator info
+      }
+
+      // Auto-print receipt after successful creation
+      if (user) {
+        try {
+          const printableOrder = preparePrintableOrder(newOrder, items, user.fullName)
+          printReceipt(printableOrder)
+        } catch (printError) {
+          console.error("❌ Auto-print failed:", printError)
+          toast({
+            title: "Print Warning",
+            description: "Order created but receipt printing failed. You can print from the order view.",
+            variant: "destructive",
+          })
+        }
+      }
+
+      // Redirect to view the created order instead of going back to table
       setShowOrderForm(false)
-      onRefresh()
+      setViewingOrder(newOrder)
+      setIsViewModalOpen(true)
     } catch (error: any) {
       console.error("❌ OrdersTab: Order creation failed:", error)
       toast({
@@ -106,6 +174,16 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
     }
   }
 
+  const handleViewOrder = (order: Order) => {
+    setViewingOrder(order)
+    setIsViewModalOpen(true)
+  }
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false)
+    setViewingOrder(null)
+  }
+
   if (showOrderForm) {
     return (
       <OrderForm
@@ -142,14 +220,48 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
       </div>
 
       <OrderList
-        orders={orders}
-        onViewOrder={setSelectedOrder}
+        orders={paginatedData}
+        items={items}
+        onViewOrder={handleViewOrder}
         onEditOrder={setEditingOrder}
         onUpdateStatus={handleUpdateStatus}
         onDeleteOrder={handleDeleteOrder}
       />
 
-      {selectedOrder && <OrderDetails order={selectedOrder} onClose={() => setSelectedOrder(null)} />}
+      {totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={goToPreviousPage}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    onClick={() => goToPage(page)}
+                    isActive={currentPage === page}
+                    className="cursor-pointer"
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={goToNextPage}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal order={viewingOrder} items={items} isOpen={isViewModalOpen} onClose={handleCloseViewModal} />
     </div>
   )
 }

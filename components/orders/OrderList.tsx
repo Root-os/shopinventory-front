@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SearchInput } from "@/components/ui/search-input"
 import { Eye, Trash2, Edit, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
-import type { Order } from "@/types"
+import type { Order, Item } from "@/types"
 import { useSearch } from "@/hooks/useSearch"
 
 interface OrderListProps {
   orders: Order[]
+  items: Item[]
   onViewOrder: (order: Order) => void
   onEditOrder: (order: Order) => void
   onUpdateStatus: (orderId: number, status: "Pending" | "Confirmed" | "Dispatched") => void
@@ -21,7 +22,7 @@ interface OrderListProps {
 type SortField = "customerName" | "totalPrice" | "paid" | "status" | "createdAt"
 type SortDirection = "asc" | "desc"
 
-export function OrderList({ orders, onViewOrder, onEditOrder, onUpdateStatus, onDeleteOrder }: OrderListProps) {
+export function OrderList({ orders, items, onViewOrder, onEditOrder, onUpdateStatus, onDeleteOrder }: OrderListProps) {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [sortField, setSortField] = useState<SortField>("createdAt")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
@@ -187,6 +188,9 @@ export function OrderList({ orders, onViewOrder, onEditOrder, onUpdateStatus, on
                   <tr key={order.id} className="border-b hover:bg-muted/50">
                     <td className="p-3">
                       <div className="font-medium">{order.customerName || "Unknown Customer"}</div>
+                      {order.createdBy && (
+                        <div className="text-xs text-muted-foreground">Created by: {order.createdBy}</div>
+                      )}
                     </td>
                     <td className="p-3">
                       <div className="text-sm">{order.customerPhone || "No Phone"}</div>

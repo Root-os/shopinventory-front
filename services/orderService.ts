@@ -1,8 +1,22 @@
 import { apiService } from "./api"
 import type { Order, OrderItem } from "@/types"
 
+interface CreateOrderResponse {
+  id: number
+  customerName?: string
+  customerPhone?: string
+  customerId?: number
+  items: OrderItem[]
+  paid: number
+  paymentType: "Cash" | "Credit"
+  status: "Pending" | "Confirmed" | "Dispatched"
+  totalPrice: number
+  createdAt: string
+  updatedAt: string
+}
+
 class OrderService {
-  async getOrders(token: string) {
+  async getOrders(token: string): Promise<Order[]> {
     if (!token) {
       throw new Error("Authentication token is required")
     }
@@ -29,7 +43,7 @@ class OrderService {
       status: "Pending" | "Confirmed" | "Dispatched"
     },
     token: string,
-  ) {
+  ): Promise<CreateOrderResponse> {
     if (!token) {
       throw new Error("Authentication token is required")
     }
@@ -87,7 +101,7 @@ class OrderService {
     console.log("🚀 Sending processed order data:", JSON.stringify(processedOrderData, null, 2))
 
     try {
-      const result = await apiService.post("/api/orders", processedOrderData, token)
+      const result = await apiService.post<CreateOrderResponse>("/api/orders", processedOrderData, token)
       console.log("✅ Order created successfully:", result)
       return result
     } catch (error) {
@@ -109,7 +123,7 @@ class OrderService {
       status: "Pending" | "Confirmed" | "Dispatched"
     },
     token: string,
-  ) {
+  ): Promise<any> {
     if (!token) {
       throw new Error("Authentication token is required")
     }
@@ -139,14 +153,14 @@ class OrderService {
     return apiService.put(`/api/orders/${id}`, processedOrderData, token)
   }
 
-  async updateOrderStatus(id: number, status: "Pending" | "Confirmed" | "Dispatched", token: string) {
+  async updateOrderStatus(id: number, status: "Pending" | "Confirmed" | "Dispatched", token: string): Promise<any> {
     if (!token) {
       throw new Error("Authentication token is required")
     }
     return apiService.put(`/api/orders/${id}`, { status }, token)
   }
 
-  async deleteOrder(id: number, token: string) {
+  async deleteOrder(id: number, token: string): Promise<any> {
     if (!token) {
       throw new Error("Authentication token is required")
     }

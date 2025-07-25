@@ -28,9 +28,14 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
     phone: "",
     customerId: "",
   })
+  // Track original customer data to detect changes
+  const [originalCustomerData, setOriginalCustomerData] = useState({
+    name: "",
+    phone: "",
+  })
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [paymentData, setPaymentData] = useState({
-    paymentType: "Cash", // Changed from "Cash" to ensure it matches ENUM
+    paymentType: "Cash",
     paid: 0,
     status: "Pending" as "Pending" | "Confirmed" | "Dispatched",
   })
@@ -44,9 +49,13 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
       if (initialOrder.customerId) {
         setIsNewCustomer(false)
         setCustomerData({
-          name: "",
-          phone: "",
+          name: initialOrder.customerName || "",
+          phone: initialOrder.customerPhone || "",
           customerId: initialOrder.customerId.toString(),
+        })
+        setOriginalCustomerData({
+          name: initialOrder.customerName || "",
+          phone: initialOrder.customerPhone || "",
         })
       } else {
         setIsNewCustomer(true)
@@ -54,6 +63,10 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
           name: initialOrder.customerName || "",
           phone: initialOrder.customerPhone || "",
           customerId: "",
+        })
+        setOriginalCustomerData({
+          name: initialOrder.customerName || "",
+          phone: initialOrder.customerPhone || "",
         })
       }
 
@@ -68,6 +81,55 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
       })
     }
   }, [isEditing, initialOrder])
+
+  // Handle customer type change - preserve data when switching
+  const handleCustomerTypeChange = (newIsNewCustomer: boolean) => {
+    if (newIsNewCustomer) {
+      // Switching to new customer - clear existing customer selection but keep name/phone if available
+      const selectedCustomer = customers.find((c) => c.id.toString() === customerData.customerId)
+      setCustomerData({
+        name: selectedCustomer?.name || customerData.name,
+        phone: selectedCustomer?.phone || customerData.phone,
+        customerId: "",
+      })
+    } else {
+      // Switching to existing customer - clear name/phone but try to find matching customer
+      const matchingCustomer = customers.find((c) => c.name === customerData.name || c.phone === customerData.phone)
+      setCustomerData({
+        name: "",
+        phone: "",
+        customerId: matchingCustomer?.id.toString() || "",
+      })
+    }
+    setIsNewCustomer(newIsNewCustomer)
+  }
+
+  // Handle existing customer selection - retain name and phone in customerData
+  const handleExistingCustomerChange = (customerId: string) => {
+    const selectedCustomer = customers.find((c) => c.id.toString() === customerId)
+    if (selectedCustomer) {
+      setCustomerData({
+        name: selectedCustomer.name,
+        phone: selectedCustomer.phone,
+        customerId: customerId,
+      })
+      // Set original data to track changes
+      setOriginalCustomerData({
+        name: selectedCustomer.name,
+        phone: selectedCustomer.phone,
+      })
+    } else {
+      setCustomerData({
+        name: "",
+        phone: "",
+        customerId: customerId,
+      })
+      setOriginalCustomerData({
+        name: "",
+        phone: "",
+      })
+    }
+  }
 
   const addItem = () => {
     // Initialize with proper default values - no itemId: 0
@@ -112,21 +174,26 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
     console.log("🔍 Form submission started")
     console.log("🔍 Order items:", orderItems)
     console.log("🔍 Customer data:", customerData)
+    console.log("🔍 Original customer data:", originalCustomerData)
     console.log("🔍 Payment data:", paymentData)
+    console.log("🔍 Is new customer:", isNewCustomer)
 
     if (orderItems.length === 0) {
       toast({ title: "Error", description: "Please add at least one item", variant: "destructive" })
       return
     }
 
-    if (!isNewCustomer && !customerData.customerId) {
-      toast({ title: "Error", description: "Please select a customer", variant: "destructive" })
-      return
-    }
-
-    if (isNewCustomer && (!customerData.name.trim() || !customerData.phone.trim())) {
-      toast({ title: "Error", description: "Please fill in customer details", variant: "destructive" })
-      return
+    // Validate customer data based on type
+    if (isNewCustomer) {
+      if (!customerData.name.trim() || !customerData.phone.trim()) {
+        toast({ title: "Error", description: "Please fill in customer name and phone", variant: "destructive" })
+        return
+      }
+    } else {
+      if (!customerData.customerId) {
+        toast({ title: "Error", description: "Please select a customer", variant: "destructive" })
+        return
+      }
     }
 
     // Validate that all items have valid data
@@ -155,16 +222,8 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
 
     try {
       // Create the exact structure that works with backend validation
-      const orderData = {
+      const orderData: any = {
         isNewCustomer: Boolean(isNewCustomer),
-        ...(isNewCustomer
-          ? {
-              customerName: String(customerData.name).trim(),
-              customerPhone: String(customerData.phone).trim(),
-            }
-          : {
-              customerId: Number(customerData.customerId),
-            }),
         items: orderItems.map((item) => ({
           itemId: Number(item.itemId),
           quantity: Number(item.quantity),
@@ -174,6 +233,26 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
         paid: Number(paymentData.paid),
         paymentType: String(paymentData.paymentType),
         status: paymentData.status,
+      }
+
+      if (isNewCustomer) {
+        // For new customers, always send name and phone
+        orderData.customerName = String(customerData.name).trim()
+        orderData.customerPhone = String(customerData.phone).trim()
+      } else {
+        // For existing customers, send only customerId
+        orderData.customerId = Number(customerData.customerId)
+
+        // Only include customerName and customerPhone if they were explicitly changed
+        const nameChanged = customerData.name.trim() !== originalCustomerData.name.trim()
+        const phoneChanged = customerData.phone.trim() !== originalCustomerData.phone.trim()
+
+        if (nameChanged) {
+          orderData.customerName = String(customerData.name).trim()
+        }
+        if (phoneChanged) {
+          orderData.customerPhone = String(customerData.phone).trim()
+        }
       }
 
       console.log("🚀 Final order data to submit:", JSON.stringify(orderData, null, 2))
@@ -220,7 +299,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
               <Button
                 type="button"
                 variant={isNewCustomer ? "default" : "outline"}
-                onClick={() => setIsNewCustomer(true)}
+                onClick={() => handleCustomerTypeChange(true)}
                 disabled={isEditing} // Disable customer type change when editing
               >
                 New Customer
@@ -228,7 +307,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
               <Button
                 type="button"
                 variant={!isNewCustomer ? "default" : "outline"}
-                onClick={() => setIsNewCustomer(false)}
+                onClick={() => handleCustomerTypeChange(false)}
                 disabled={isEditing} // Disable customer type change when editing
               >
                 Existing Customer
@@ -259,24 +338,52 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
-                <Label htmlFor="customerId">Select Customer *</Label>
-                <Select
-                  value={customerData.customerId}
-                  onValueChange={(value) => setCustomerData({ ...customerData, customerId: value })}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a customer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id.toString()}>
-                        {customer.name} - {customer.phone}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="customerId">Select Customer *</Label>
+                  <Select value={customerData.customerId} onValueChange={handleExistingCustomerChange} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a customer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customers.map((customer) => (
+                        <SelectItem key={customer.id} value={customer.id.toString()}>
+                          {customer.name} - {customer.phone}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Show selected customer details with ability to edit */}
+                {customerData.customerId && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                    <div className="space-y-2">
+                      <Label htmlFor="existingCustomerName">Customer Name</Label>
+                      <Input
+                        id="existingCustomerName"
+                        value={customerData.name}
+                        onChange={(e) => setCustomerData({ ...customerData, name: e.target.value })}
+                        placeholder="Customer name"
+                      />
+                      {customerData.name !== originalCustomerData.name && (
+                        <p className="text-xs text-orange-600">⚠️ Name will be updated</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="existingCustomerPhone">Phone Number</Label>
+                      <Input
+                        id="existingCustomerPhone"
+                        value={customerData.phone}
+                        onChange={(e) => setCustomerData({ ...customerData, phone: e.target.value })}
+                        placeholder="Phone number"
+                      />
+                      {customerData.phone !== originalCustomerData.phone && (
+                        <p className="text-xs text-orange-600">⚠️ Phone will be updated</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

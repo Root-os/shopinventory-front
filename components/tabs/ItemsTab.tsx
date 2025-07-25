@@ -8,11 +8,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SearchInput } from "@/components/ui/search-input"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { Plus, Trash2, Edit, Save, X, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import type { Item, Category } from "@/types"
 import { itemService } from "@/services/itemService"
 import { useAuth } from "@/contexts/AuthContext"
 import { useSearch } from "@/hooks/useSearch"
+import { usePagination } from "@/hooks/usePagination"
 import { useToast } from "@/hooks/use-toast"
 
 interface ItemsTabProps {
@@ -67,6 +76,11 @@ export function ItemsTab({ items, categories, onRefresh }: ItemsTabProps) {
       return aValue < bValue ? 1 : -1
     }
   })
+
+  const { currentPage, totalPages, paginatedData, goToPage, goToNextPage, goToPreviousPage } = usePagination(
+    sortedData,
+    10
+  )
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -135,11 +149,11 @@ export function ItemsTab({ items, categories, onRefresh }: ItemsTabProps) {
         id,
         {
           name: editingItem.name!,
-          categoryId: editingItem.categoryId!,
+          categoryId: Number(editingItem.categoryId!),
           unit: editingItem.unit!,
-          price: typeof editingItem.price === "string" ? Number.parseFloat(editingItem.price) : editingItem.price!,
-          quantity: editingItem.quantity!,
-          minStockLevel: editingItem.minStockLevel!,
+          price: Number(editingItem.price!),
+          quantity: Number(editingItem.quantity!),
+          minStockLevel: Number(editingItem.minStockLevel!),
         },
         token,
       )
@@ -339,7 +353,7 @@ export function ItemsTab({ items, categories, onRefresh }: ItemsTabProps) {
                 </tr>
               </thead>
               <tbody>
-                {sortedData.map((item) => {
+                {paginatedData.map((item) => {
                   const isEditing = editingId === item.id
 
                   return (
@@ -467,12 +481,44 @@ export function ItemsTab({ items, categories, onRefresh }: ItemsTabProps) {
                 })}
               </tbody>
             </table>
-            {sortedData.length === 0 && (
+            {paginatedData.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 {searchQuery ? "No items found matching your search." : "No items yet."}
               </div>
             )}
           </div>
+
+          {totalPages > 1 && (
+            <div className="mt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={goToPreviousPage}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => goToPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={goToNextPage}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
