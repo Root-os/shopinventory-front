@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Sales Management System</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="sales-management-system">Sales Management System</h1>
+<p>A comprehensive sales management application built with Next.js 15, React 19, and TypeScript.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li>🔐 <strong>Authentication &amp; Authorization</strong> - JWT-based authentication with role management</li>
+<li>📊 <strong>Dashboard</strong> - Comprehensive overview with statistics and analytics</li>
+<li>🏷️ <strong>Category Management</strong> - Create, edit, and delete product categories</li>
+<li>📦 <strong>Inventory Management</strong> - Track items, stock levels, and low stock alerts</li>
+<li>👥 <strong>User Management</strong> - Manage system users with different roles</li>
+<li>🤝 <strong>Customer Management</strong> - Handle customer information and relationships</li>
+<li>🛒 <strong>Order Management</strong> - Complete order processing with payment tracking</li>
+<li>🔍 <strong>Search &amp; Filtering</strong> - Advanced search and filtering across all modules</li>
+<li>🎨 <strong>Theme Support</strong> - Light/Dark mode with system preference detection</li>
+<li>📱 <strong>Responsive Design</strong> - Works seamlessly on all device sizes</li>
+</ul>
+<h2 id="tech-stack">Tech Stack</h2>
+<ul>
+<li><strong>Framework</strong>: Next.js 15 with App Router</li>
+<li><strong>Frontend</strong>: React 19, TypeScript</li>
+<li><strong>Styling</strong>: Tailwind CSS with shadcn/ui components</li>
+<li><strong>State Management</strong>: React Context API</li>
+<li><strong>Icons</strong>: Lucide React</li>
+<li><strong>Authentication</strong>: JWT tokens with localStorage persistence</li>
+</ul>
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>Node.js 18+</li>
+<li>npm, yarn, or pnpm</li>
+</ul>
+<h3 id="installation">Installation</h3>
+<ol>
+<li>
+<p>Clone the repository or download the project files</p>
+</li>
+<li>
+<p>Install dependencies:
+```bash
+npm install</p>
+</li>
+</ol>
+<h1 id="or">or</h1>
+<p>yarn install</p>
+<h1 id="or-1">or</h1>
+<p>pnpm install
+```</p>
+<ol start="3">
+<li>
+<p>Set up environment variables:
+Create a <code>.env.local</code> file in the root directory:
+```env
+NEXT_PUBLIC_API_URL=<a href="http://localhost:3000">http://localhost:3000</a>
+```</p>
+</li>
+<li>
+<p>Run the development server:
+```bash
+npm run dev</p>
+</li>
+</ol>
+<h1 id="or-2">or</h1>
+<p>yarn dev</p>
+<h1 id="or-3">or</h1>
+<p>pnpm dev
+```</p>
+<ol start="5">
+<li>Open <a href="http://localhost:3000">http://localhost:3000</a> in your browser</li>
+</ol>
+<h2 id="project-structure">Project Structure</h2>
+<p>```
+├── app/                    # Next.js app directory
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx          # Home page
+├── components/            # React components
+│   ├── auth/             # Authentication components
+│   ├── dashboard/        # Dashboard components
+│   ├── layout/           # Layout components
+│   ├── orders/           # Order management components
+│   ├── tabs/             # Tab components for different sections
+│   └── ui/               # shadcn/ui components
+├── contexts/             # React contexts
+│   ├── AuthContext.tsx   # Authentication context
+│   └── ThemeContext.tsx  # Theme context
+├── hooks/                # Custom React hooks
+│   ├── use-mobile.ts     # Mobile detection hook
+│   ├── use-search.ts     # Search functionality hook
+│   └── use-toast.ts      # Toast notifications hook
+├── lib/                  # Utility libraries
+│   └── utils.ts          # Utility functions
+├── services/             # API service layers
+│   ├── api.ts            # Base API service
+│   ├── authService.ts    # Authentication API
+│   ├── categoryService.ts # Category API
+│   ├── customerService.ts # Customer API
+│   ├── itemService.ts    # Item API
+│   └── orderService.ts   # Order API
+└── types/                # TypeScript type definitions
+└── index.ts          # All type definitions
+```</p>
+<h2 id="api-integration">API Integration</h2>
+<p>The application is designed to work with a REST API. Update the <code>NEXT_PUBLIC_API_URL</code> environment variable to point to your backend API.</p>
+<h3 id="expected-api-endpoints">Expected API Endpoints:</h3>
+<ul>
+<li><code>POST /api/auth/login</code> - User authentication</li>
+<li><code>POST /api/auth/register</code> - User registration</li>
+<li><code>GET /api/auth</code> - Get all users</li>
+<li><code>DELETE /api/auth/:id</code> - Delete user</li>
+<li><code>GET /api/item-categories</code> - Get categories</li>
+<li><code>POST /api/item-categories</code> - Create category</li>
+<li><code>DELETE /api/item-categories/:id</code> - Delete category</li>
+<li><code>GET /api/items</code> - Get items</li>
+<li><code>POST /api/items</code> - Create item</li>
+<li><code>DELETE /api/items/:id</code> - Delete item</li>
+<li><code>GET /api/customers</code> - Get customers</li>
+<li><code>POST /api/customers</code> - Create customer</li>
+<li><code>DELETE /api/customers/:id</code> - Delete customer</li>
+<li><code>GET /api/orders</code> - Get orders</li>
+<li><code>POST /api/orders</code> - Create order</li>
+<li><code>PUT /api/orders/:id</code> - Update order</li>
+<li><code>DELETE /api/orders/:id</code> - Delete order</li>
+</ul>
+<h2 id="usage">Usage</h2>
+<ol>
+<li><strong>Login</strong>: Use your credentials to access the system</li>
+<li><strong>Dashboard</strong>: View overview statistics and alerts</li>
+<li><strong>Categories</strong>: Manage product categories</li>
+<li><strong>Items</strong>: Add and manage inventory items</li>
+<li><strong>Users</strong>: Manage system users (admin only)</li>
+<li><strong>Customers</strong>: Handle customer information</li>
+<li><strong>Orders</strong>: Process and track orders</li>
+</ol>
+<h2 id="features-in-detail">Features in Detail</h2>
+<h3 id="order-management">Order Management</h3>
+<ul>
+<li>Create orders for new or existing customers</li>
+<li>Add multiple items with quantity and pricing</li>
+<li>Track payment status and calculate balances</li>
+<li>Update order status (Pending, Processing, Completed, Cancelled)</li>
+<li>View detailed order information</li>
+</ul>
+<h3 id="search--filtering">Search &amp; Filtering</h3>
+<ul>
+<li>Real-time search across all data tables</li>
+<li>Filter by categories, roles, status, etc.</li>
+<li>Advanced filtering options for better data management</li>
+</ul>
+<h3 id="theme-support">Theme Support</h3>
+<ul>
+<li>Automatic dark/light mode detection</li>
+<li>Manual theme switching</li>
+<li>Persistent theme preferences</li>
+</ul>
+<h2 id="contributing">Contributing</h2>
+<ol>
+<li>Fork the repository</li>
+<li>Create a feature branch</li>
+<li>Make your changes</li>
+<li>Test thoroughly</li>
+<li>Submit a pull request</li>
+</ol>
+<h2 id="license">License</h2>
+<p>This project is licensed under the MIT License.</p>
+
+            
+            
+        </body>
+        </html>
