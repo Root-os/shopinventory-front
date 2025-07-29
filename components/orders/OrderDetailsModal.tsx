@@ -1,3 +1,4 @@
+// components/orders/OrderDetailsModal.tsx
 "use client"
 
 import { useState } from "react"
@@ -20,10 +21,23 @@ export function OrderDetailsModal({ order, items, isOpen, onClose }: OrderDetail
   const { user } = useAuth()
   const [zoomLevel, setZoomLevel] = useState(100)
 
-  if (!order) return null
+  if (!order || !order.items || !Array.isArray(order.items)) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 text-center text-muted-foreground">
+            <p>No order data available.</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "confirmed":
         return "bg-green-100 text-green-800 border-green-200"
       case "dispatched":
@@ -39,7 +53,7 @@ export function OrderDetailsModal({ order, items, isOpen, onClose }: OrderDetail
     return items.find((item) => item.id === itemId)
   }
 
-  const balance = order.paid - order.totalPrice
+  const balance = (order.paid || 0) - (order.totalPrice || 0)
 
   const handlePrint = () => {
     const printableOrder = preparePrintableOrder(order, items, order.createdBy || user?.fullName || "Unknown User")
@@ -71,7 +85,7 @@ export function OrderDetailsModal({ order, items, isOpen, onClose }: OrderDetail
       <DialogContent className={`${getModalWidth()} max-h-[95vh] overflow-hidden flex flex-col`}>
         <DialogHeader className="flex-shrink-0">
           <div className="flex justify-between items-center">
-            <DialogTitle className="text-xl">Order Details - #{order.id}</DialogTitle>
+            <DialogTitle className="text-xl">Order Details - #{order.id || "Unknown"}</DialogTitle>
             <div className="flex gap-2 items-center">
               {/* Zoom Controls */}
               <div className="flex items-center gap-1 border rounded-lg p-1">
@@ -126,24 +140,24 @@ export function OrderDetailsModal({ order, items, isOpen, onClose }: OrderDetail
                 <div className="space-y-3">
                   {order.items.map((orderItem, index) => {
                     const itemDetails = getItemDetails(orderItem.itemId)
-                    const itemTotal = orderItem.quantity * orderItem.price
+                    const itemTotal = (orderItem.quantity || 0) * (orderItem.price || 0)
 
                     return (
                       <div key={index} className="flex justify-between items-center p-4 border rounded-lg bg-muted/30">
                         <div className="flex-1">
-                          <p className="font-medium text-lg">{itemDetails?.name || `Item #${orderItem.itemId}`}</p>
+                          <p className="font-medium text-lg">{itemDetails?.name || orderItem.itemName || `Item #${orderItem.itemId || index}`}</p>
                           <div className="flex gap-4 text-sm text-muted-foreground mt-1">
                             <span>
-                              Quantity: {orderItem.quantity} {orderItem.unit}
+                              Quantity: {orderItem.quantity || 0} {orderItem.unit || "N/A"}
                             </span>
-                            <span>Unit Price: {orderItem.price.toFixed(2)} ETB</span>
-                            {itemDetails && <span>Category: {itemDetails.categoryId}</span>}
+                            <span>Unit Price: {(orderItem.price || 0).toFixed(2)} ETB</span>
+                            {itemDetails && <span>Category: {itemDetails.categoryId || "N/A"}</span>}
                           </div>
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-lg">{itemTotal.toFixed(2)} ETB</p>
                           <p className="text-sm text-muted-foreground">
-                            {orderItem.quantity} × {orderItem.price.toFixed(2)}
+                            {(orderItem.quantity || 0)} × {(orderItem.price || 0).toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -158,11 +172,11 @@ export function OrderDetailsModal({ order, items, isOpen, onClose }: OrderDetail
                 <div className="bg-muted p-4 rounded-lg space-y-3">
                   <div className="flex justify-between text-lg">
                     <span>Subtotal:</span>
-                    <span className="font-medium">{order.totalPrice.toFixed(2)} ETB</span>
+                    <span className="font-medium">{(order.totalPrice || 0).toFixed(2)} ETB</span>
                   </div>
                   <div className="flex justify-between text-lg">
                     <span>Amount Paid:</span>
-                    <span className="font-medium">{order.paid.toFixed(2)} ETB</span>
+                    <span className="font-medium">{(order.paid || 0).toFixed(2)} ETB</span>
                   </div>
                   <div className="border-t pt-3">
                     <div className="flex justify-between text-xl font-bold">
@@ -185,11 +199,11 @@ export function OrderDetailsModal({ order, items, isOpen, onClose }: OrderDetail
                   <div className="bg-muted p-4 rounded-lg space-y-2">
                     <div className="flex justify-between">
                       <span>Payment Method:</span>
-                      <span className="font-medium">{order.paymentType}</span>
+                      <span className="font-medium">{order.paymentType || "N/A"}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Status:</span>
-                      <Badge className={`${getStatusColor(order.status)} border`}>{order.status}</Badge>
+                      <Badge className={`${getStatusColor(order.status)} border`}>{order.status || "Unknown"}</Badge>
                     </div>
                   </div>
                 </div>
@@ -199,11 +213,11 @@ export function OrderDetailsModal({ order, items, isOpen, onClose }: OrderDetail
                   <div className="bg-muted p-4 rounded-lg space-y-2">
                     <div className="flex justify-between">
                       <span>Created:</span>
-                      <span className="font-medium">{new Date(order.createdAt).toLocaleString()}</span>
+                      <span className="font-medium">{order.createdAt ? new Date(order.createdAt).toLocaleString() : "N/A"}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Updated:</span>
-                      <span className="font-medium">{new Date(order.updatedAt).toLocaleString()}</span>
+                      <span className="font-medium">{order.updatedAt ? new Date(order.updatedAt).toLocaleString() : "N/A"}</span>
                     </div>
                   </div>
                 </div>

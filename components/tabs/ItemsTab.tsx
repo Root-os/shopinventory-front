@@ -410,7 +410,7 @@ export function ItemsTab({ items, categories, onRefresh }: ItemsTabProps) {
                             onChange={(e) => setEditingItem({ ...editingItem, price: e.target.value })}
                           />
                         ) : (
-                          `$${Number.parseFloat(item.price).toFixed(2)}`
+                          `Birr${Number.parseFloat(item.price).toFixed(2)}`
                         )}
                       </td>
                       <td className="p-3">

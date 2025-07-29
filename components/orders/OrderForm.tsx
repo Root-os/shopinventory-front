@@ -1,7 +1,7 @@
+// components/orders/OrderForm.tsx
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -28,64 +28,79 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
     phone: "",
     customerId: "",
   })
-  // Track original customer data to detect changes
   const [originalCustomerData, setOriginalCustomerData] = useState({
     name: "",
     phone: "",
   })
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [paymentData, setPaymentData] = useState({
-    paymentType: "Cash",
+    paymentType: "Cash" as "Cash" | "Credit",
     paid: 0,
     status: "Pending" as "Pending" | "Confirmed" | "Dispatched",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
 
-  // Initialize form with existing order data when editing
+  // Initialize form with existing order data or add first item for new orders
   useEffect(() => {
     if (isEditing && initialOrder) {
-      // Set customer data
-      if (initialOrder.customerId) {
-        setIsNewCustomer(false)
-        setCustomerData({
-          name: initialOrder.customerName || "",
-          phone: initialOrder.customerPhone || "",
-          customerId: initialOrder.customerId.toString(),
-        })
-        setOriginalCustomerData({
-          name: initialOrder.customerName || "",
-          phone: initialOrder.customerPhone || "",
-        })
-      } else {
-        setIsNewCustomer(true)
-        setCustomerData({
-          name: initialOrder.customerName || "",
-          phone: initialOrder.customerPhone || "",
-          customerId: "",
-        })
-        setOriginalCustomerData({
-          name: initialOrder.customerName || "",
-          phone: initialOrder.customerPhone || "",
-        })
-      }
-
-      // Set order items
-      setOrderItems(initialOrder.items)
-
-      // Set payment data
-      setPaymentData({
-        paymentType: initialOrder.paymentType,
-        paid: initialOrder.paid,
-        status: initialOrder.status,
+      // Initialize for editing
+      const selectedCustomer = initialOrder.customerId
+        ? customers.find((c) => c.id === initialOrder.customerId)
+        : null
+      const isNewCustomerForEdit = !initialOrder.customerId
+      setIsNewCustomer(isNewCustomerForEdit)
+      const name = selectedCustomer?.name || initialOrder.customerName || ""
+      const phone = selectedCustomer?.phone || initialOrder.customerPhone || ""
+      setCustomerData({
+        name,
+        phone,
+        customerId: initialOrder.customerId?.toString() || "",
       })
+      setOriginalCustomerData({
+        name,
+        phone,
+      })
+      setOrderItems(
+        initialOrder.items && Array.isArray(initialOrder.items) && initialOrder.items.length > 0
+          ? initialOrder.items.map((item) => ({
+            itemId: Number(item.itemId) || 0,
+            quantity: Number(item.quantity) || 1,
+            price: Number(item.price) || 0,
+            unit: String(item.unit || ""),
+            itemName: items.find((i) => i.id === Number(item.itemId))?.name || item.itemName || "Unknown Item",
+          }))
+          : [
+            {
+              itemId: items.length > 0 ? items[0].id : 0,
+              quantity: 1,
+              price: items.length > 0 ? Number.parseFloat(items[0].price) : 0,
+              unit: items.length > 0 ? items[0].unit : "",
+              itemName: items.length > 0 ? items[0].name : "",
+            },
+          ]
+      )
+      setPaymentData({
+        paymentType: initialOrder.paymentType || "Cash",
+        paid: Number(initialOrder.paid) || 0,
+        status: initialOrder.status || "Pending",
+      })
+    } else if (!isEditing && items.length > 0 && orderItems.length === 0) {
+      // Auto-add first item for new orders
+      setOrderItems([
+        {
+          itemId: items[0].id,
+          quantity: 1,
+          price: Number.parseFloat(items[0].price),
+          unit: items[0].unit,
+          itemName: items[0].name,
+        },
+      ])
     }
-  }, [isEditing, initialOrder])
+  }, [isEditing, initialOrder, items, orderItems.length, customers])
 
-  // Handle customer type change - preserve data when switching
   const handleCustomerTypeChange = (newIsNewCustomer: boolean) => {
     if (newIsNewCustomer) {
-      // Switching to new customer - clear existing customer selection but keep name/phone if available
       const selectedCustomer = customers.find((c) => c.id.toString() === customerData.customerId)
       setCustomerData({
         name: selectedCustomer?.name || customerData.name,
@@ -93,7 +108,6 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
         customerId: "",
       })
     } else {
-      // Switching to existing customer - clear name/phone but try to find matching customer
       const matchingCustomer = customers.find((c) => c.name === customerData.name || c.phone === customerData.phone)
       setCustomerData({
         name: "",
@@ -104,16 +118,14 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
     setIsNewCustomer(newIsNewCustomer)
   }
 
-  // Handle existing customer selection - retain name and phone in customerData
   const handleExistingCustomerChange = (customerId: string) => {
     const selectedCustomer = customers.find((c) => c.id.toString() === customerId)
     if (selectedCustomer) {
       setCustomerData({
         name: selectedCustomer.name,
         phone: selectedCustomer.phone,
-        customerId: customerId,
+        customerId,
       })
-      // Set original data to track changes
       setOriginalCustomerData({
         name: selectedCustomer.name,
         phone: selectedCustomer.phone,
@@ -122,7 +134,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
       setCustomerData({
         name: "",
         phone: "",
-        customerId: customerId,
+        customerId,
       })
       setOriginalCustomerData({
         name: "",
@@ -132,7 +144,6 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
   }
 
   const addItem = () => {
-    // Initialize with proper default values - no itemId: 0
     setOrderItems([
       ...orderItems,
       {
@@ -140,6 +151,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
         quantity: 1,
         price: items.length > 0 ? Number.parseFloat(items[0].price) : 0,
         unit: items.length > 0 ? items[0].unit : "",
+        itemName: items.length > 0 ? items[0].name : "",
       },
     ])
   }
@@ -171,7 +183,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    console.log("🔍 Form submission started")
+    console.log("🔍 Form submission started", { isEditing })
     console.log("🔍 Order items:", orderItems)
     console.log("🔍 Customer data:", customerData)
     console.log("🔍 Original customer data:", originalCustomerData)
@@ -183,7 +195,6 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
       return
     }
 
-    // Validate customer data based on type
     if (isNewCustomer) {
       if (!customerData.name.trim() || !customerData.phone.trim()) {
         toast({ title: "Error", description: "Please fill in customer name and phone", variant: "destructive" })
@@ -196,7 +207,6 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
       }
     }
 
-    // Validate that all items have valid data
     const invalidItems = orderItems.filter((item) => {
       const itemId = Number(item.itemId)
       const quantity = Number(item.quantity)
@@ -221,7 +231,6 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
     setIsSubmitting(true)
 
     try {
-      // Create the exact structure that works with backend validation
       const orderData: any = {
         isNewCustomer: Boolean(isNewCustomer),
         items: orderItems.map((item) => ({
@@ -232,34 +241,38 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
         })),
         paid: Number(paymentData.paid),
         paymentType: String(paymentData.paymentType),
-        status: paymentData.status,
+        status: String(paymentData.status),
       }
 
       if (isNewCustomer) {
-        // For new customers, always send name and phone
         orderData.customerName = String(customerData.name).trim()
         orderData.customerPhone = String(customerData.phone).trim()
+        orderData.customerId = undefined // Ensure customerId is not sent for new customers
       } else {
-        // For existing customers, send only customerId
         orderData.customerId = Number(customerData.customerId)
-
-        // Only include customerName and customerPhone if they were explicitly changed
-        const nameChanged = customerData.name.trim() !== originalCustomerData.name.trim()
-        const phoneChanged = customerData.phone.trim() !== originalCustomerData.phone.trim()
-
-        if (nameChanged) {
-          orderData.customerName = String(customerData.name).trim()
+        // Only include changed fields
+        if (customerData.name.trim() !== originalCustomerData.name.trim()) {
+          orderData.customerName = String(customerData.name).trim() || undefined
         }
-        if (phoneChanged) {
-          orderData.customerPhone = String(customerData.phone).trim()
+        if (customerData.phone.trim() !== originalCustomerData.phone.trim()) {
+          orderData.customerPhone = String(customerData.phone).trim() || undefined
         }
       }
 
       console.log("🚀 Final order data to submit:", JSON.stringify(orderData, null, 2))
 
       await onSubmit(orderData)
+      toast({
+        title: "Success",
+        description: isEditing ? "Order updated successfully" : "Order created successfully",
+      })
     } catch (error) {
       console.error("❌ Order submission failed:", error)
+      toast({
+        title: "Error",
+        description: isEditing ? "Failed to update order" : "Failed to create order",
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -280,7 +293,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
             {isEditing ? (
               <>
                 <Edit className="w-5 h-5" />
-                Edit Order #{initialOrder?.id}
+                Edit Order #{initialOrder?.id || "N/A"}
               </>
             ) : (
               <>
@@ -300,7 +313,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
                 type="button"
                 variant={isNewCustomer ? "default" : "outline"}
                 onClick={() => handleCustomerTypeChange(true)}
-                disabled={isEditing} // Disable customer type change when editing
+                disabled={isEditing}
               >
                 New Customer
               </Button>
@@ -308,7 +321,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
                 type="button"
                 variant={!isNewCustomer ? "default" : "outline"}
                 onClick={() => handleCustomerTypeChange(false)}
-                disabled={isEditing} // Disable customer type change when editing
+                disabled={isEditing}
               >
                 Existing Customer
               </Button>
@@ -348,14 +361,13 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
                     <SelectContent>
                       {customers.map((customer) => (
                         <SelectItem key={customer.id} value={customer.id.toString()}>
-                          {customer.name} - {customer.phone}
+                          {customer.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* Show selected customer details with ability to edit */}
                 {customerData.customerId && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
                     <div className="space-y-2">
@@ -404,12 +416,6 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
               </div>
             )}
 
-            {orderItems.length === 0 && items.length > 0 && (
-              <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
-                <p>No items added yet. Click "Add Item" to start building your order.</p>
-              </div>
-            )}
-
             {orderItems.map((orderItem, index) => (
               <div key={index} className="grid grid-cols-12 gap-2 items-end p-4 border rounded-lg bg-muted/20">
                 <div className="col-span-4">
@@ -424,10 +430,10 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
                     </SelectTrigger>
                     <SelectContent>
                       {items
-                        .filter((item) => item.quantity > 0) // Only show items in stock
+                        .filter((item) => item.quantity > 0)
                         .map((item) => (
                           <SelectItem key={item.id} value={item.id.toString()}>
-                            {item.name} - {item.price} ETB ({item.quantity} {item.unit} available)
+                            {item.name}
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -509,7 +515,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
               <Label htmlFor="paymentType">Payment Type *</Label>
               <Select
                 value={paymentData.paymentType}
-                onValueChange={(value) => setPaymentData({ ...paymentData, paymentType: value })}
+                onValueChange={(value) => setPaymentData({ ...paymentData, paymentType: value as "Cash" | "Credit" })}
                 required
               >
                 <SelectTrigger>

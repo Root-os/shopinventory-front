@@ -1,3 +1,4 @@
+// components/tabs/OrdersTab.tsx
 "use client"
 
 import { useState } from "react"
@@ -31,8 +32,8 @@ interface OrdersTabProps {
 
 interface CreateOrderResponse {
   id: number
-  customerName?: string
-  customerPhone?: string
+  customerName?: string | null
+  customerPhone?: string | null
   customerId?: number
   items: any[]
   paid: number
@@ -41,6 +42,7 @@ interface CreateOrderResponse {
   totalPrice: number
   createdAt: string
   updatedAt: string
+  createdBy?: string
 }
 
 export function OrdersTab({ orders, items, customers, onRefresh, token }: OrdersTabProps) {
@@ -75,14 +77,20 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
         customerName: orderData.isNewCustomer ? orderData.customerName : createdOrder.customerName || null,
         customerPhone: orderData.isNewCustomer ? orderData.customerPhone : createdOrder.customerPhone || null,
         customerId: orderData.isNewCustomer ? undefined : orderData.customerId,
-        items: orderData.items,
-        paid: orderData.paid,
-        paymentType: orderData.paymentType as "Cash" | "Credit",
-        status: orderData.status as "Pending" | "Confirmed" | "Dispatched",
-        totalPrice: orderData.items.reduce((sum: number, item: any) => sum + item.quantity * item.price, 0),
+        items: orderData.items.map((item: any) => ({
+          itemId: Number(item.itemId) || 0,
+          quantity: Number(item.quantity) || 0,
+          price: Number(item.price) || 0,
+          unit: String(item.unit || ""),
+          itemName: items.find((i) => i.id === Number(item.itemId))?.name || "",
+        })),
+        paid: Number(orderData.paid) || 0,
+        paymentType: orderData.paymentType as "Cash" | "Credit" || "Cash",
+        status: orderData.status as "Pending" | "Confirmed" | "Dispatched" || "Pending",
+        totalPrice: Number(orderData.items.reduce((sum: number, item: any) => sum + item.quantity * item.price, 0)) || 0,
         createdAt: createdOrder.createdAt || new Date().toISOString(),
         updatedAt: createdOrder.updatedAt || new Date().toISOString(),
-        createdBy: user?.fullName || "Unknown User", // Add creator info
+        createdBy: user?.fullName || createdOrder.createdBy || "Unknown User",
       }
 
       // Auto-print receipt after successful creation
@@ -100,7 +108,7 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
         }
       }
 
-      // Redirect to view the created order instead of going back to table
+      // Redirect to view the created order
       setShowOrderForm(false)
       setViewingOrder(newOrder)
       setIsViewModalOpen(true)
@@ -175,7 +183,19 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
   }
 
   const handleViewOrder = (order: Order) => {
-    setViewingOrder(order)
+    setViewingOrder({
+      ...order,
+      items: order.items && Array.isArray(order.items)
+        ? order.items.map((item) => ({
+          ...item,
+          itemId: Number(item.itemId) || 0,
+          quantity: Number(item.quantity) || 0,
+          price: Number(item.price) || 0,
+          unit: String(item.unit || ""),
+          itemName: items.find((i) => i.id === Number(item.itemId))?.name || item.itemName || "",
+        }))
+        : [],
+    })
     setIsViewModalOpen(true)
   }
 
@@ -260,7 +280,6 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
         </div>
       )}
 
-      {/* Order Details Modal */}
       <OrderDetailsModal order={viewingOrder} items={items} isOpen={isViewModalOpen} onClose={handleCloseViewModal} />
     </div>
   )

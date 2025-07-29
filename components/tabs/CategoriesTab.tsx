@@ -179,7 +179,7 @@ export function CategoriesTab({ categories, onRefresh }: CategoriesTabProps) {
                       {getSortIcon("name")}
                     </Button>
                   </th>
-                  <th className="text-left p-3">
+                  {/* <th className="text-left p-3">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -189,7 +189,7 @@ export function CategoriesTab({ categories, onRefresh }: CategoriesTabProps) {
                       Created
                       {getSortIcon("createdAt")}
                     </Button>
-                  </th>
+                  </th> */}
                   <th className="text-left p-3">Actions</th>
                 </tr>
               </thead>
@@ -211,11 +211,11 @@ export function CategoriesTab({ categories, onRefresh }: CategoriesTabProps) {
                           <div className="font-medium">{category.name}</div>
                         )}
                       </td>
-                      <td className="p-3">
+                      {/* <td className="p-3">
                         <div className="text-sm text-muted-foreground">
                           {new Date(category.createdAt).toLocaleDateString()}
                         </div>
-                      </td>
+                      </td> */}
                       <td className="p-3">
                         <div className="flex space-x-2">
                           {isEditing ? (

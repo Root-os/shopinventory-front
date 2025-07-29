@@ -261,7 +261,7 @@ export function CustomersTab({ customers, onRefresh }: CustomersTabProps) {
                       {getSortIcon("phone")}
                     </Button>
                   </th>
-                  <th className="text-left p-3">
+                  {/* <th className="text-left p-3">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -271,7 +271,7 @@ export function CustomersTab({ customers, onRefresh }: CustomersTabProps) {
                       Created
                       {getSortIcon("createdAt")}
                     </Button>
-                  </th>
+                  </th> */}
                   <th className="text-left p-3">Actions</th>
                 </tr>
               </thead>
@@ -314,7 +314,7 @@ export function CustomersTab({ customers, onRefresh }: CustomersTabProps) {
                           <div>{customer.phone}</div>
                         )}
                       </td>
-                      <td className="p-3">
+                      {/* <td className="p-3">
                         {isEditing ? (
                           <Input
                             type="password"
@@ -327,7 +327,7 @@ export function CustomersTab({ customers, onRefresh }: CustomersTabProps) {
                             {new Date(customer.createdAt).toLocaleDateString()}
                           </div>
                         )}
-                      </td>
+                      </td> */}
                       <td className="p-3">
                         <div className="flex space-x-2">
                           {isEditing ? (
