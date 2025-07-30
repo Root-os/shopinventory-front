@@ -71,3 +71,17 @@ export interface ThemeContextType {
   theme: "light" | "dark"
   toggleTheme: () => void
 }
+
+export interface RequestItem {
+  itemId: number
+  quantity: number
+}
+
+export interface CustomerRequest {
+  id: number
+  customerId: number
+  items: RequestItem[]
+  description: string
+  createdAt: string
+  updatedAt: string
+}

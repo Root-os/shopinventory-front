@@ -72,6 +72,17 @@ class ApiService {
   async delete<T>(endpoint: string, token?: string): Promise<T> {
     return this.request<T>(endpoint, { method: "DELETE" }, token)
   }
+  async patch<T>(endpoint: string, data: any, token?: string): Promise<T> {
+  return this.request<T>(
+    endpoint,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    },
+    token,
+  )
+}
+
 }
 
 export const apiService = new ApiService()

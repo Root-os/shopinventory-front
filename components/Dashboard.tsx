@@ -17,6 +17,8 @@ import { authService } from "@/services/authService"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import type { Category, Item, User, Customer, Order } from "@/types"
+import CustomerRequestsPage from "./tabs/CustomerRequest"
+import OrdersReportPage from "./tabs/OrderReport"
 
 export function Dashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
@@ -78,6 +80,18 @@ export function Dashboard() {
     const categoryMatch = categories.find((cat) => cat.name.toLowerCase().includes(searchLower))
     if (categoryMatch) {
       setActiveTab("categories")
+      return
+    }
+
+    const customerReqMatch = categories.find((cat) => cat.name.toLowerCase().includes(searchLower))
+    if (customerReqMatch) {
+      setActiveTab("ordersreq")
+      return
+    }
+
+    const orderReportMatch = categories.find((cat) => cat.name.toLowerCase().includes(searchLower))
+    if (orderReportMatch) {
+      setActiveTab("ordersreport")
       return
     }
 
@@ -151,6 +165,9 @@ export function Dashboard() {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="customers">Customers</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="ordersreq">Request</TabsTrigger>
+            <TabsTrigger value="ordersreport">Report</TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="dashboard">
@@ -183,6 +200,14 @@ export function Dashboard() {
             {/* Pass token prop to OrdersTab */}
             <OrdersTab orders={orders} items={items} customers={customers} onRefresh={fetchData} token={token} />
           </TabsContent>
+          <TabsContent value="ordersreq">
+            {/* Pass token prop to OrdersTab */}
+            <CustomerRequestsPage />
+          </TabsContent>
+          <TabsContent value="ordersreport">
+            <OrdersReportPage token={token}/>
+          </TabsContent>
+          
         </Tabs>
       </main>
     </div>

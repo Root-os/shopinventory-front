@@ -166,6 +166,15 @@ class OrderService {
     }
     return apiService.delete(`/api/orders/${id}`, token)
   }
+
+  async updateStatusAsStorekeeper(id: number, status: "Pending" | "Confirmed" | "Dispatched", token: string): Promise<any> {
+  if (!token) {
+    throw new Error("Authentication token is required")
+  }
+  return apiService.patch(`/api/orders/${id}/status`, { status }, token)
+}
+
+
 }
 
 export const orderService = new OrderService()

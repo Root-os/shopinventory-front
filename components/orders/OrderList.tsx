@@ -14,15 +14,19 @@ interface OrderListProps {
   orders: Order[]
   items: Item[]
   onViewOrder: (order: Order) => void
-  onEditOrder: (order: Order) => void
-  onUpdateStatus: (orderId: number, status: "Pending" | "Confirmed" | "Dispatched") => void
-  onDeleteOrder: (orderId: number) => void
+  onEditOrder?: (order: Order) => void
+  onUpdateStatus: (orderId: number, status: "Pending" | "Confirmed") => void
+  onDeleteOrder?: (orderId: number) => void
+  canEdit?: boolean
+  canDelete?: boolean
+  canUpdateStatus?: boolean
 }
 
 type SortField = "customerName" | "totalPrice" | "paid" | "status" | "createdAt"
 type SortDirection = "asc" | "desc"
 
-export function OrderList({ orders, items, onViewOrder, onEditOrder, onUpdateStatus, onDeleteOrder }: OrderListProps) {
+export function OrderList({ orders, items, onViewOrder, onEditOrder, onUpdateStatus, onDeleteOrder, canEdit,
+  canDelete, }: OrderListProps) {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [sortField, setSortField] = useState<SortField>("createdAt")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
@@ -85,7 +89,7 @@ export function OrderList({ orders, items, onViewOrder, onEditOrder, onUpdateSta
 
   const handleEditClick = (order: Order) => {
     try {
-      onEditOrder(order)
+      onEditOrder?.(order)
     } catch (error) {
       console.error("Error editing order:", error)
     }
@@ -136,17 +140,6 @@ export function OrderList({ orders, items, onViewOrder, onEditOrder, onUpdateSta
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleSort("status")}
-                    className="font-semibold p-0 h-auto"
-                  >
-                    Status
-                    {getSortIcon("status")}
-                  </Button>
-                </th>
-                <th className="text-left p-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
                     onClick={() => handleSort("totalPrice")}
                     className="font-semibold p-0 h-auto"
                   >
@@ -178,6 +171,17 @@ export function OrderList({ orders, items, onViewOrder, onEditOrder, onUpdateSta
                     {getSortIcon("createdAt")}
                   </Button>
                 </th>
+                <th className="text-left p-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSort("status")}
+                  className="font-semibold p-0 h-auto"
+                >
+                  Status
+                  {getSortIcon("status")}
+                </Button>
+                </th>
                 <th className="text-left p-3">Actions</th>
               </tr>
             </thead>
@@ -194,26 +198,6 @@ export function OrderList({ orders, items, onViewOrder, onEditOrder, onUpdateSta
                     </td>
                     <td className="p-3">
                       <div className="text-sm">{order.customerPhone || "No Phone"}</div>
-                    </td>
-                    <td className="p-3">
-                      <div className="space-y-2">
-                        <Badge className={`${getStatusColor(order.status)} border`}>{order.status}</Badge>
-                        <Select
-                          value={order.status}
-                          onValueChange={(value) =>
-                            onUpdateStatus(order.id, value as "Pending" | "Confirmed" | "Dispatched")
-                          }
-                        >
-                          <SelectTrigger className="w-full h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Pending">Pending</SelectItem>
-                            <SelectItem value="Confirmed">Confirmed</SelectItem>
-                            <SelectItem value="Dispatched">Dispatched</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </td>
                     <td className="p-3">
                       <div className="font-medium">{order.totalPrice.toFixed(2)} ETB</div>
@@ -233,21 +217,48 @@ export function OrderList({ orders, items, onViewOrder, onEditOrder, onUpdateSta
                       <div className="text-sm">{new Date(order.createdAt).toLocaleDateString()}</div>
                     </td>
                     <td className="p-3">
+                      <div className="space-y-2">
+                        <Badge className={`${getStatusColor(order.status)} border`}>{order.status}</Badge>
+                        <Select
+                          value={order.status}
+                          onValueChange={(value) =>
+                            onUpdateStatus(order.id, value as "Pending" | "Confirmed")
+                          }
+                        >
+                          <SelectTrigger className="w-full h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Pending">Pending</SelectItem>
+                            <SelectItem value="Confirmed">Confirmed</SelectItem>
+                            <SelectItem value="Dispatched">Dispatched</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </td>
+                    <td className="p-3">
                       <div className="flex space-x-1">
                         <Button onClick={() => onViewOrder(order)} variant="outline" size="sm" title="View Details">
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button onClick={() => handleEditClick(order)} variant="outline" size="sm" title="Edit Order">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          onClick={() => onDeleteOrder(order.id)}
-                          variant="destructive"
-                          size="sm"
-                          title="Delete Order"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      {canEdit && onEditOrder && (
+                          <Button onClick={() => handleEditClick(order)} variant="outline" size="sm" title="Edit Order">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        )}
+
+                        {canDelete && onDeleteOrder && (
+                          <Button
+                            onClick={() => onDeleteOrder(order.id)}
+                            variant="destructive"
+                            size="sm"
+                            title="Delete Order"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                       )}
+                       
+
                       </div>
                     </td>
                   </tr>

@@ -107,7 +107,6 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
           })
         }
       }
-
       // Redirect to view the created order
       setShowOrderForm(false)
       setViewingOrder(newOrder)
@@ -127,7 +126,6 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
       if (!token || !editingOrder) {
         throw new Error("Authentication token or order data is missing")
       }
-
       await orderService.updateOrder(editingOrder.id, orderData, token)
       toast({ title: "Success", description: "Order updated successfully" })
       setEditingOrder(null)
@@ -142,24 +140,30 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
     }
   }
 
-  const handleUpdateStatus = async (orderId: number, status: "Pending" | "Confirmed" | "Dispatched") => {
-    try {
-      if (!token) {
-        throw new Error("Authentication token is missing")
-      }
-
-      await orderService.updateOrderStatus(orderId, status, token)
-      toast({ title: "Success", description: "Order status updated" })
-      onRefresh()
-    } catch (error: any) {
-      console.error("❌ OrdersTab: Status update failed:", error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update order status",
-        variant: "destructive",
-      })
+ const handleUpdateStatus = async (orderId: number, status: "Pending" | "Confirmed" | "Dispatched") => {
+  try {
+    if (!token || !user?.role) {
+      throw new Error("Authentication token or user role is missing")
     }
+
+    if (user.role === "admin") {
+      await orderService.updateOrderStatus(orderId, status, token)
+    } else {
+      await orderService.updateStatusAsStorekeeper(orderId, status, token)
+    }
+
+    toast({ title: "Success", description: "Order status updated" })
+    onRefresh()
+  } catch (error: any) {
+    console.error("❌ OrdersTab: Status update failed:", error)
+    toast({
+      title: "Error",
+      description: error.message || "Failed to update order status",
+      variant: "destructive",
+    })
   }
+}
+
 
   const handleDeleteOrder = async (orderId: number) => {
     if (confirm("Are you sure you want to delete this order?")) {
@@ -233,21 +237,25 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Orders Management</h2>
-        <Button onClick={() => setShowOrderForm(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          New Order
-        </Button>
+        {user?.role === "admin" && (
+          <Button onClick={() => setShowOrderForm(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            New Order
+          </Button>
+        )}
       </div>
 
       <OrderList
         orders={paginatedData}
         items={items}
         onViewOrder={handleViewOrder}
-        onEditOrder={setEditingOrder}
+        onEditOrder={user?.role === "admin" ? setEditingOrder : undefined}
         onUpdateStatus={handleUpdateStatus}
-        onDeleteOrder={handleDeleteOrder}
+        onDeleteOrder={user?.role === "admin" ? handleDeleteOrder : undefined}
+        canEdit={user?.role === "admin"}
+        canDelete={user?.role === "admin"}
+        canUpdateStatus={user?.role === "admin"}        
       />
-
       {totalPages > 1 && (
         <div className="mt-4">
           <Pagination>
