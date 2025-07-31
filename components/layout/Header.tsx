@@ -84,39 +84,7 @@ className = "text-sm"
 {/* Desktop Actions */ }
 <div className="hidden sm:flex items-center space-x-2" >
   {/* Global Search */ }
-{
-  showSearch ? (
-    <form onSubmit= { handleSearch } className = "flex items-center space-x-2" >
-      <Input
-                  type="text"
-  placeholder = "Search everything..."
-  value = { searchQuery }
-  onChange = {(e) => setSearchQuery(e.target.value)
-}
-className = "w-64"
-autoFocus
-  />
-  <Button type="submit" size = "sm" variant = "outline" >
-    <Search className="h-4 w-4" />
-      </Button>
-      < Button
-type = "button"
-size = "sm"
-variant = "ghost"
-onClick = {() => {
-  setShowSearch(false)
-  setSearchQuery("")
-}}
-                >
-  <X className="h-4 w-4" />
-    </Button>
-    </form>
-            ) : (
-  <Button onClick= {() => setShowSearch(true)} variant = "outline" size = "sm" >
-    <Search className="h-4 w-4 mr-2" />
-      Search
-      </Button>
-            )}
+
 
 <Button onClick={ toggleTheme } variant = "outline" size = "sm" >
   { theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
