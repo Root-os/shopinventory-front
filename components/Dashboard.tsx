@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Header } from "@/components/layout/Header"
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview"
+import {StorekeeperDashboard} from "@/components/dashboard/StoreDashboard"
 import { CategoriesTab } from "@/components/tabs/CategoriesTab"
 import { ItemsTab } from "@/components/tabs/ItemsTab"
 import { UsersTab } from "@/components/tabs/UsersTab"
@@ -30,6 +31,8 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true)
   const { token } = useAuth()
   const { toast } = useToast()
+  const { user } = useAuth()
+
 
   const fetchData = async () => {
     try {
@@ -170,15 +173,26 @@ export function Dashboard() {
 
           </TabsList>
 
-          <TabsContent value="dashboard">
-            <DashboardOverview
-              categories={categories}
-              items={items}
-              users={users}
-              customers={customers}
-              orders={orders}
-            />
-          </TabsContent>
+      <TabsContent value="dashboard">
+  {user?.role === "storekeeper" ? (
+    <StorekeeperDashboard
+      items={items}
+      orders={orders}
+      categories={categories}
+      users={users}
+      customers={customers}
+    />
+  ) : (
+    <DashboardOverview
+      categories={categories}
+      items={items}
+      users={users}
+      customers={customers}
+      orders={orders}
+    />
+  )}
+</TabsContent>
+
 
           <TabsContent value="categories">
             <CategoriesTab categories={categories} onRefresh={fetchData} />
