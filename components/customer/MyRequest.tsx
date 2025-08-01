@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { ReactNode, useEffect, useState } from "react"
 import { useCustomerAuth } from "@/contexts/CustomerContext"
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns"
@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+
 
 interface Item {
   itemId: number
@@ -29,12 +31,21 @@ interface Customer {
 }
 
 interface Request {
+  status: string
   id: number
   customerId: number
   description: string
   items: Item[]
   createdAt: string
   Customer: Customer
+}
+
+interface RequestResponse {
+  id: number
+  requestId: number
+  status: string
+  reason?: string
+  createdAt: string
 }
 
 export default function CustomerRequestsList() {
@@ -44,6 +55,8 @@ export default function CustomerRequestsList() {
   const [loading, setLoading] = useState(true)
   const [editRequest, setEditRequest] = useState<Request | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const [responses, setResponses] = useState<RequestResponse[]>([])
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
@@ -68,9 +81,28 @@ export default function CustomerRequestsList() {
         setLoading(false)
       }
     }
-
     fetchRequests()
   }, [customer, toast])
+
+  useEffect(() => {
+  const fetchResponses = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/request/response`)
+      if (!res.ok) throw new Error("Failed to fetch responses")
+      const data = await res.json()
+      setResponses(data)
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to load responses",
+        variant: "destructive",
+      })
+    }
+  }
+
+  fetchResponses()
+}, [])
+
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Are you sure you want to delete this request?")) return
@@ -137,22 +169,32 @@ export default function CustomerRequestsList() {
     return <p className="text-center text-muted-foreground">No requests submitted yet.</p>
   }
 
+  const statusColorMap: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-800",
+  confirmed: "bg-blue-100 text-blue-800",
+  approved: "bg-green-100 text-green-800",
+  rejected: "bg-red-100 text-red-800",
+}
   return (
     <>
       <ScrollArea className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Items</TableHead>
+              <TableHead  className="w-[200px]">Items</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="w-32">Date</TableHead>
+               <TableHead className="w-28">Status</TableHead>
+              <TableHead className="w-64">Response Reason</TableHead>
               <TableHead className="w-32 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {requests.map((req) => (
+        <TableBody>
+          {requests.map((req) => {
+            const matchedResponse = responses.find(r => r.requestId === req.id)
+            return (
               <TableRow key={req.id}>
-                <TableCell>
+                <TableCell  className="w-[200px]">
                   <ul className="space-y-1 max-h-40 overflow-auto pr-2">
                     {req.items.map((item) => (
                       <li key={item.itemId} className="text-sm">
@@ -161,8 +203,19 @@ export default function CustomerRequestsList() {
                     ))}
                   </ul>
                 </TableCell>
+
                 <TableCell>{req.description}</TableCell>
+
                 <TableCell>{format(new Date(req.createdAt), "yyyy-MM-dd")}</TableCell>
+              <TableCell>
+                  <Badge className={statusColorMap[req.status] || "bg-gray-100 text-gray-800"}>
+                    {req.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-sm italic text-muted-foreground">
+                  {matchedResponse?.reason || <span className="text-gray-400">—</span>}
+                </TableCell>
+
                 <TableCell className="text-right space-x-2">
                   <Button variant="outline" size="sm" onClick={() => setEditRequest(req)}>
                     Edit
@@ -172,8 +225,9 @@ export default function CustomerRequestsList() {
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
+            )
+          })}
+        </TableBody>
         </Table>
       </ScrollArea>
 

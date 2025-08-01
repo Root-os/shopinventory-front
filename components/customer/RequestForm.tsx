@@ -27,7 +27,8 @@ export default function CustomerRequestForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { customer } = useCustomerAuth();
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL 
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -91,19 +92,8 @@ export default function CustomerRequestForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Why do you need these items?"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Select Items</Label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <Label>Available Items</Label>
+            <div className="max-h-64 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 border rounded p-2">
               {items.map((item) => (
                 <Button
                   key={item.id}
@@ -111,6 +101,7 @@ export default function CustomerRequestForm() {
                   variant="outline"
                   onClick={() => handleAddItem(item.id, item.name)}
                   disabled={selectedItems.some((si) => si.itemId === item.id)}
+                  className="text-sm"
                 >
                   {item.name} ({item.unit})
                 </Button>
@@ -144,6 +135,15 @@ export default function CustomerRequestForm() {
             </div>
           )}
 
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Input
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Why do you need these items?"
+            />
+          </div>
           <Button type="submit" disabled={isSubmitting || selectedItems.length === 0}>
             {isSubmitting ? "Submitting..." : "Submit Request"}
           </Button>

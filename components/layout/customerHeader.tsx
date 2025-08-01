@@ -20,7 +20,7 @@ export function CustomerHeader({ activeTab, onTabChange }: CustomerHeaderProps) 
     { label: "Dashboard", value: "dashboard" },
     { label: "Request Items", value: "request" },
     { label: "My Requests", value: "requests" },
-    { label: "Responses", value: "responses" },
+  
   ]
 
   return (
