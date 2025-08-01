@@ -33,7 +33,7 @@ export default function OrdersReportPage({ token }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,12 +63,12 @@ export default function OrdersReportPage({ token }: Props) {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2"> Order Report</h1>
+    <div className="p-6 max-w-6xl mx-auto print:p-0 print:mt-0">
+      <div className="mb-6 print:hidden">
+        <h1 className="text-3xl font-bold text-foreground mb-2">Order Report</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-muted p-4 rounded-lg mb-6 space-y-4 shadow-sm">
+      <form onSubmit={handleSubmit} className="bg-muted p-4 rounded-lg mb-6 space-y-4 shadow-sm print:hidden">
         <div className="flex items-center space-x-4">
           <Filter className="text-muted-foreground" />
           <label className="flex items-center space-x-2">
@@ -133,61 +133,60 @@ export default function OrdersReportPage({ token }: Props) {
         </button>
       </form>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="text-red-600 print:hidden">{error}</p>}
 
       {!loading && orders.length === 0 && !error && (
-        <p className="text-muted-foreground">No orders found for the selected filter.</p>
+        <p className="text-muted-foreground print:hidden">No orders found for the selected filter.</p>
       )}
 
       {orders.length > 0 && (
-        <div className="space-y-6">
-          {orders.map((order) => (
-            <div
-              key={order.orderId}
-              className="bg-background border rounded-lg p-4 shadow-sm"
-            >
-              <div className="flex justify-between items-center mb-2">
-                <h2 className="text-xl font-semibold">Order #{order.orderId}</h2>
-                <p className="text-sm text-muted-foreground">
-                  {format(new Date(order.date), 'yyyy-MM-dd')}
-                </p>
-              </div>
-
-              <p className="mb-2">
-                <strong>Customer:</strong> {order.customer.name} (
-                {order.customer.phone})
-              </p>
-
-              <table className="w-full text-sm mb-3 border-collapse">
-                <thead>
-                  <tr className="bg-muted text-muted-foreground">
-                    <th className="p-2 text-left">Item</th>
-                    <th className="p-2 text-right">Qty</th>
-                    <th className="p-2 text-right">Unit</th>
-                    <th className="p-2 text-right">Unit Price</th>
-                    <th className="p-2 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {order.items.map((item, idx) => (
-                    <tr key={idx} className="border-t">
-                      <td className="p-2">{item.name}</td>
-                      <td className="p-2 text-right">{item.quantity}</td>
-                      <td className="p-2 text-right">{item.unit}</td>
-                      <td className="p-2 text-right">{item.unitPrice.toFixed(2)}</td>
-                      <td className="p-2 text-right font-medium">
-                        {item.total.toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <p className="text-right font-semibold text-primary">
-                Total: {order.orderTotal.toFixed(2)}
-              </p>
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <table className="w-full border text-sm print:text-xs">
+            <thead>
+              <tr className="bg-muted text-muted-foreground">
+                
+              <th className="border p-2 text-left">Customer</th>
+              <th className="border p-2 text-left">Phone</th>
+              <th className="border p-2 text-left">Items</th>
+              <th className="border p-2 text-right">Total (ETB)</th>
+              <th className="border p-2 text-left">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.orderId}>
+                  <td className="border p-2">{order.customer.name}</td>
+                  <td className="border p-2">{order.customer.phone}</td>
+                  <td className="border p-2">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr>
+                          <th className="p-1 text-left">Item</th>
+                          <th className="p-1 text-right">Qty</th>
+                          <th className="p-1 text-right">Unit</th>
+                          <th className="p-1 text-right">Price</th>
+                          <th className="p-1 text-right">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {order.items.map((item, idx) => (
+                          <tr key={idx}>
+                            <td className="p-1">{item.name}</td>
+                            <td className="p-1 text-right">{item.quantity}</td>
+                            <td className="p-1 text-right">{item.unit}</td>
+                            <td className="p-1 text-right">{item.unitPrice.toFixed(2)}</td>
+                            <td className="p-1 text-right">{item.total.toFixed(2)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </td>
+                  <td className="border p-2 text-right font-semibold">{order.orderTotal.toFixed(2)}</td>
+                  <td className="border p-2">{format(new Date(order.date), 'yyyy-MM-dd')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

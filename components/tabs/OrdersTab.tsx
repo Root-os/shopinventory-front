@@ -20,7 +20,7 @@ import type { Order, Item, Customer } from "@/types"
 import { orderService } from "@/services/orderService"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/AuthContext"
-import { printReceipt, preparePrintableOrder } from "@/utils/printUtils"
+import { preparePrintableOrder, openReceiptPreview } from "@/utils/printUtils"
 
 interface OrdersTabProps {
   orders: Order[]
@@ -43,6 +43,10 @@ interface CreateOrderResponse {
   createdAt: string
   updatedAt: string
   createdBy?: string
+   Customer?: {
+    name: string
+    phone: string
+  }
 }
 
 export function OrdersTab({ orders, items, customers, onRefresh, token }: OrdersTabProps) {
@@ -65,39 +69,46 @@ export function OrdersTab({ orders, items, customers, onRefresh, token }: Orders
         throw new Error("Authentication token is missing")
       }
 
-      const createdOrder = (await orderService.createOrder(orderData, token)) as CreateOrderResponse
+      const response = await orderService.createOrder(orderData, token)
+     const createdOrder: CreateOrderResponse = response.order
+
       toast({ title: "Success", description: "Order created successfully" })
 
       // Refresh data first
       await onRefresh()
-
       // Find the created order from the refreshed data or create a fallback
-      const newOrder: Order = orders.find((order) => order.id === createdOrder.id) || {
-        id: createdOrder.id || Date.now(),
-        customerName: orderData.isNewCustomer ? orderData.customerName : createdOrder.customerName || null,
-        customerPhone: orderData.isNewCustomer ? orderData.customerPhone : createdOrder.customerPhone || null,
-        customerId: orderData.isNewCustomer ? undefined : orderData.customerId,
+    const newOrder: Order = orders.find((order) => order.id === createdOrder.id) || {
+      id: createdOrder.id || Date.now(),
+      customerId: orderData.isNewCustomer ? undefined : createdOrder.customerId,
+      customerName: orderData.isNewCustomer
+        ? orderData.customerName
+        : createdOrder.customerName || createdOrder.Customer?.name || null,
+        customerPhone: orderData.isNewCustomer
+        ? orderData.customerPhone
+        : createdOrder.customerPhone || createdOrder.Customer?.phone || null,
         items: orderData.items.map((item: any) => ({
-          itemId: Number(item.itemId) || 0,
-          quantity: Number(item.quantity) || 0,
-          price: Number(item.price) || 0,
-          unit: String(item.unit || ""),
-          itemName: items.find((i) => i.id === Number(item.itemId))?.name || "",
+        itemId: Number(item.itemId) || 0,
+        quantity: Number(item.quantity) || 0,
+        price: Number(item.price) || 0,
+        unit: String(item.unit || ""),
+        itemName: items.find((i) => i.id === Number(item.itemId))?.name || "",
         })),
         paid: Number(orderData.paid) || 0,
         paymentType: orderData.paymentType as "Cash" | "Credit" || "Cash",
         status: orderData.status as "Pending" | "Confirmed" | "Dispatched" || "Pending",
-        totalPrice: Number(orderData.items.reduce((sum: number, item: any) => sum + item.quantity * item.price, 0)) || 0,
+        totalPrice: Number(
+          orderData.items.reduce((sum: number, item: any) => sum + item.quantity * item.price, 0)
+        ) || 0,
         createdAt: createdOrder.createdAt || new Date().toISOString(),
         updatedAt: createdOrder.updatedAt || new Date().toISOString(),
         createdBy: user?.fullName || createdOrder.createdBy || "Unknown User",
+        Customer: createdOrder.Customer || undefined, // 👈 Include this if your Order type allows it
       }
-
       // Auto-print receipt after successful creation
       if (user) {
         try {
-          const printableOrder = preparePrintableOrder(newOrder, items, user.fullName)
-          printReceipt(printableOrder)
+         const printableOrder = preparePrintableOrder(newOrder, items, user.fullName)
+          openReceiptPreview(printableOrder)
         } catch (printError) {
           console.error("❌ Auto-print failed:", printError)
           toast({

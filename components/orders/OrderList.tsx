@@ -186,84 +186,90 @@ export function OrderList({ orders, items, onViewOrder, onEditOrder, onUpdateSta
               </tr>
             </thead>
             <tbody>
-              {sortedOrders.map((order) => {
-                const balance = order.paid - order.totalPrice
-                return (
-                  <tr key={order.id} className="border-b hover:bg-muted/50">
-                    <td className="p-3">
-                      <div className="font-medium">{order.customerName || "Unknown Customer"}</div>
-                      {order.createdBy && (
-                        <div className="text-xs text-muted-foreground">Created by: {order.createdBy}</div>
-                      )}
-                    </td>
-                    <td className="p-3">
-                      <div className="text-sm">{order.customerPhone || "No Phone"}</div>
-                    </td>
-                    <td className="p-3">
-                      <div className="font-medium">{order.totalPrice.toFixed(2)} ETB</div>
-                    </td>
-                    <td className="p-3">
-                      <div className="font-medium">{order.paid.toFixed(2)} ETB</div>
-                    </td>
-                    <td className="p-3">
-                      <div className={`font-medium ${balance >= 0 ? "text-green-600" : "text-red-600"}`}>
-                        {balance.toFixed(2)} ETB
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <div className="text-sm">{order.paymentType}</div>
-                    </td>
-                    <td className="p-3">
-                      <div className="text-sm">{new Date(order.createdAt).toLocaleDateString()}</div>
-                    </td>
-                    <td className="p-3">
-                      <div className="space-y-2">
-                        <Badge className={`${getStatusColor(order.status)} border`}>{order.status}</Badge>
-                        <Select
-                          value={order.status}
-                          onValueChange={(value) =>
-                            onUpdateStatus(order.id, value as "Pending" | "Confirmed")
-                          }
-                        >
-                          <SelectTrigger className="w-full h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Pending">Pending</SelectItem>
-                            <SelectItem value="Confirmed">Confirmed</SelectItem>
-                            <SelectItem value="Dispatched">Dispatched</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <div className="flex space-x-1">
-                        <Button onClick={() => onViewOrder(order)} variant="outline" size="sm" title="View Details">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      {canEdit && onEditOrder && (
-                          <Button onClick={() => handleEditClick(order)} variant="outline" size="sm" title="Edit Order">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        )}
+             {sortedOrders.map((order) => {
+            const balance = order.paid - order.totalPrice
 
-                        {canDelete && onDeleteOrder && (
-                          <Button
-                            onClick={() => onDeleteOrder(order.id)}
-                            variant="destructive"
-                            size="sm"
-                            title="Delete Order"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                       )}
-                       
+            const customerName = order.isNewCustomer
+              ? order.customerName || "New Customer"
+              : order.Customer?.name || `Customer #${order.customerId}`
 
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
+            const customerPhone = order.isNewCustomer
+              ? order.customerPhone || "N/A"
+              : order.Customer?.phone || "N/A"
+
+            return (
+              <tr key={order.id} className="border-b hover:bg-muted/50">
+                <td className="p-3">
+                  <div className="font-medium">{customerName}</div>
+                  {order.createdBy && (
+                    <div className="text-xs text-muted-foreground">Created by: {order.createdBy}</div>
+                  )}
+                </td>
+                <td className="p-3">
+                  <div className="text-sm">{customerPhone}</div>
+                </td>
+                <td className="p-3">
+                  <div className="font-medium">{order.totalPrice.toFixed(2)} ETB</div>
+                </td>
+                <td className="p-3">
+                  <div className="font-medium">{order.paid.toFixed(2)} ETB</div>
+                </td>
+                <td className="p-3">
+                  <div className={`font-medium ${balance >= 0 ? "text-green-600" : "text-red-600"}`}>
+                    {balance.toFixed(2)} ETB
+                  </div>
+                </td>
+                <td className="p-3">
+                  <div className="text-sm">{order.paymentType}</div>
+                </td>
+                <td className="p-3">
+                  <div className="text-sm">{new Date(order.createdAt).toLocaleDateString()}</div>
+                </td>
+                <td className="p-3">
+                  <div className="space-y-2">
+                    <Badge className={`${getStatusColor(order.status)} border`}>{order.status}</Badge>
+                    <Select
+                      value={order.status}
+                      onValueChange={(value) =>
+                        onUpdateStatus(order.id, value as "Pending" | "Confirmed")
+                      }
+                    >
+                      <SelectTrigger className="w-full h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Confirmed">Confirmed</SelectItem>
+                        <SelectItem value="Dispatched">Dispatched</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </td>
+                <td className="p-3">
+                  <div className="flex space-x-1">
+                    <Button onClick={() => onViewOrder(order)} variant="outline" size="sm" title="View Details">
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    {canEdit && onEditOrder && (
+                      <Button onClick={() => handleEditClick(order)} variant="outline" size="sm" title="Edit Order">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {canDelete && onDeleteOrder && (
+                      <Button
+                        onClick={() => onDeleteOrder(order.id)}
+                        variant="destructive"
+                        size="sm"
+                        title="Delete Order"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
             </tbody>
           </table>
           {sortedOrders.length === 0 && (

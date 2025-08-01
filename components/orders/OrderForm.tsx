@@ -439,38 +439,19 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="col-span-2">
                   <Label>Quantity *</Label>
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateItem(index, "quantity", Math.max(1, Number(orderItem.quantity) - 1))}
-                      disabled={Number(orderItem.quantity) <= 1}
-                    >
-                      <Minus className="w-3 h-3" />
-                    </Button>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={orderItem.quantity}
-                      onChange={(e) => updateItem(index, "quantity", Math.max(1, Number(e.target.value) || 1))}
-                      className="text-center"
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateItem(index, "quantity", Number(orderItem.quantity) + 1)}
-                    >
-                      <Plus className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  <Input
+                    type="number"
+                    step="1"
+                    min="1"
+                    value={orderItem.quantity}
+                    onChange={(e) =>
+                      updateItem(index, "quantity", Math.max(1, Number(e.target.value) || 1))
+                    }
+                    required
+                  />
                 </div>
-
                 <div className="col-span-2">
                   <Label>Unit Price *</Label>
                   <Input

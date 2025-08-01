@@ -31,7 +31,7 @@ export function Header({ activeTab, onTabChange, onGlobalSearch }: HeaderProps) 
     { id: "users", label: "Users", roles: ["admin"] },
     { id: "customers", label: "Customers", roles: ["admin"] },
     { id: "orders", label: "Orders", roles: ["admin", "storekeeper"] },
-    { id: "ordersreq", label: "Requests", roles: ["admin"] },
+    { id: "ordersreq", label: "Requests", roles: ["admin", "storekeeper"] },
     { id: "ordersreport", label: "Order Report", roles: ["admin"] },
   ];
 

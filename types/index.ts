@@ -45,6 +45,7 @@ export interface OrderItem {
 }
 
 export interface Order {
+  isNewCustomer: any
   id: number
   customerName: string | null
   customerPhone: string | null
@@ -57,6 +58,10 @@ export interface Order {
   createdAt: string
   updatedAt: string
   createdBy?: string
+  Customer?: {
+    name: string
+    phone: string
+  }
 }
 
 export interface AuthContextType {

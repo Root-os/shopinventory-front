@@ -2,6 +2,7 @@ import { apiService } from "./api"
 import type { Order, OrderItem } from "@/types"
 
 interface CreateOrderResponse {
+  order: CreateOrderResponse
   id: number
   customerName?: string
   customerPhone?: string

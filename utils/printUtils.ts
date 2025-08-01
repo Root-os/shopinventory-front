@@ -196,7 +196,7 @@ export function generateReceiptHTML(order: PrintableOrder): string {
         <div class="header">
           <div class="company-name">SALES MANAGEMENT SYSTEM</div>
           <div>Sales Receipt</div>
-          <div class="receipt-title">ORDER #${order.id}</div>
+          
         </div>
         
         <!-- Order Information -->
@@ -204,11 +204,11 @@ export function generateReceiptHTML(order: PrintableOrder): string {
           <div class="customer-info">
             <div class="info-row">
               <span class="label">Customer:</span>
-              <span>${order.customerName || "Walk-in Customer"}</span>
+              <span>${order.customerName || order.Customer?.name || "Walk-in Customer"}</span>
             </div>
             <div class="info-row">
               <span class="label">Phone:</span>
-              <span>${order.customerPhone || "N/A"}</span>
+              <span>${order.customerPhone || order.Customer?.phone || "N/A"}</span>
             </div>
             <div class="info-row">
               <span class="label">Payment Type:</span>
@@ -217,25 +217,16 @@ export function generateReceiptHTML(order: PrintableOrder): string {
           </div>
           
           <div class="order-details">
-            <div class="info-row">
-              <span class="label">Order Date:</span>
-              <span>${new Date(order.createdAt).toLocaleString()}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Print Date:</span>
-              <span>${order.printDate}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Status:</span>
-              <span>${order.status}</span>
-            </div>
+          <div class="info-row">
+            <span class="label">Order Date:</span>
+            <span>${new Date(order.createdAt).toLocaleDateString()}</span>
+          </div>
             <div class="info-row">
               <span class="label">Served by:</span>
               <span>${order.userName}</span>
             </div>
           </div>
         </div>
-        
         <!-- Items Table -->
         <table class="items-table">
           <thead>
@@ -296,11 +287,11 @@ export function generateReceiptHTML(order: PrintableOrder): string {
           <div class="signature-row">
             <div class="signature-box">
               <div class="signature-line"></div>
-              <div>Customer Signature</div>
+              <div>customer<br/><span>${order.customerName || order.Customer?.name || "Walk-in Customer"}</span></div>
             </div>
             <div class="signature-box">
               <div class="signature-line"></div>
-              <div>Cashier Signature</div>
+              <div><span>${order.userName}</span></div>
             </div>
           </div>
         </div>
@@ -353,8 +344,32 @@ export function preparePrintableOrder(order: Order, items: Item[], userName: str
 
   return {
     ...order,
+    customerName: order.customerName || order.Customer?.name || null,
+    customerPhone: order.customerPhone || order.Customer?.phone || null,
     itemDetails,
     userName,
     printDate: new Date().toLocaleString(),
   }
 }
+
+export function openReceiptPreview(order: PrintableOrder): void {
+  const previewWindow = window.open("", "_blank", "width=800,height=600")
+
+  if (!previewWindow) {
+    alert("Please allow popups to preview receipt")
+    return
+  }
+
+  const receiptHTML = generateReceiptHTML(order)
+
+  // Insert a print button at the top inside the body tag
+  const fullHtmlWithPrintButton = receiptHTML.replace(
+    "<body>",
+    `<body>
+      <button onclick="window.print()" style="margin: 20px; font-size: 16px; cursor: pointer;"> Print Receipt</button>`
+  )
+
+  previewWindow.document.write(fullHtmlWithPrintButton)
+  previewWindow.document.close()
+}
+

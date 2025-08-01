@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/table"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import RespondModal from "@/components/reusabe/responseModal"
-
 interface RequestItem {
   itemId: number
   name: string
@@ -24,7 +23,6 @@ interface Customer {
   name: string
   phone: string
 }
-
 interface CustomerRequest {
   status: any
   id: number
@@ -99,9 +97,7 @@ useEffect(() => {
       const res = await fetch(`${API_BASE}/api/request/${id}`, {
         method: "DELETE",
       })
-
       if (!res.ok) throw new Error("Delete failed")
-
       setRequests((prev) => prev.filter((r) => r.id !== id))
     } catch (err) {
       alert("Failed to delete request.")
@@ -204,14 +200,14 @@ useEffect(() => {
       )}
 
       <RespondModal
-  open={showModal}
-  onClose={() => setShowModal(false)}
-  request={selectedRequest}
-  onRespond={() => {
-    fetchResponses()
-    fetchRequests()
-  }}
-/>
+      open={showModal}
+      onClose={() => setShowModal(false)}
+      request={selectedRequest}
+      onRespond={() => {
+        fetchResponses()
+        fetchRequests()
+      }}
+    />
 
     </div>
   )

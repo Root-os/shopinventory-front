@@ -232,14 +232,24 @@ export function ItemsTab({ items, categories, onRefresh }: ItemsTabProps) {
 
             <div className="space-y-2">
               <Label htmlFor="unit">Unit</Label>
-              <Input
-                id="unit"
+              <Select
                 value={itemForm.unit}
-                onChange={(e) => setItemForm({ ...itemForm, unit: e.target.value })}
-                placeholder="kg, pcs, box, etc."
-                required
+                onValueChange={(value) => setItemForm({ ...itemForm, unit: value })}
                 disabled={isSubmitting}
-              />
+              >
+                <SelectTrigger id="unit">
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="kg">kg</SelectItem>
+                  <SelectItem value="pcs">pcs</SelectItem>
+                  <SelectItem value="box">box</SelectItem>
+                  <SelectItem value="litre">litre</SelectItem>
+                  <SelectItem value="packet">packet</SelectItem>
+                  <SelectItem value="dozen">dozen</SelectItem>
+                  {/* Add more units if needed */}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -247,6 +257,7 @@ export function ItemsTab({ items, categories, onRefresh }: ItemsTabProps) {
               <Input
                 id="price"
                 type="number"
+                min={0}
                 step="0.01"
                 value={itemForm.price}
                 onChange={(e) => setItemForm({ ...itemForm, price: e.target.value })}
@@ -261,6 +272,7 @@ export function ItemsTab({ items, categories, onRefresh }: ItemsTabProps) {
               <Input
                 id="quantity"
                 type="number"
+                min={0}
                 value={itemForm.quantity}
                 onChange={(e) => setItemForm({ ...itemForm, quantity: e.target.value })}
                 placeholder="0"
@@ -274,6 +286,7 @@ export function ItemsTab({ items, categories, onRefresh }: ItemsTabProps) {
               <Input
                 id="minStockLevel"
                 type="number"
+                min={0}
                 value={itemForm.minStockLevel}
                 onChange={(e) => setItemForm({ ...itemForm, minStockLevel: e.target.value })}
                 placeholder="0"
