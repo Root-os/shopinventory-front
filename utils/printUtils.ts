@@ -221,9 +221,13 @@ export function generateReceiptHTML(order: PrintableOrder): string {
             <span class="label">Order Date:</span>
             <span>${new Date(order.createdAt).toLocaleDateString()}</span>
           </div>
+          <div class="info-row">
+            <span class="label">Served by:</span>
+            <span>${order.userName}</span>
+          </div>
             <div class="info-row">
-              <span class="label">Served by:</span>
-              <span>${order.userName}</span>
+              <span class="label">Car Plate:</span>
+              <span>${order.carPlate}</span>
             </div>
           </div>
         </div>

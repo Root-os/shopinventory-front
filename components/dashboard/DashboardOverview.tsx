@@ -98,12 +98,13 @@ export function DashboardOverview({ categories, items, users, customers, orders 
 
         <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
+            <CardTitle className="text-sm font-medium">Items In Store</CardTitle>
             <Package className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{totalInventoryValue.toFixed(2)} ETB</div>
-            <p className="text-xs text-muted-foreground mt-1">{items.length} items in stock</p>
+            
+            <div className="text-2xl font-bold text-purple-600">{items.length} </div>
+            <p className="text-xs text-muted-foreground mt-1">{categories.length} categories available</p>
             <div className="absolute bottom-0 left-0 w-full h-1 bg-purple-100">
               <div className="h-full w-2/3 bg-purple-500"></div>
             </div>
@@ -117,7 +118,6 @@ export function DashboardOverview({ categories, items, users, customers, orders 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{customers.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">{categories.length} categories available</p>
             <div className="absolute bottom-0 left-0 w-full h-1 bg-orange-100">
               <div className="h-full w-4/5 bg-orange-500"></div>
             </div>

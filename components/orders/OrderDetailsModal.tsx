@@ -88,6 +88,7 @@ const handlePrint = () => {
       createdAt: order.createdAt,
       status: order.status,
       createdBy: createdBy,
+      carPlate: order.carPlate,
       items: order.items.map((item) => {
         const itemDetails = getItemDetails(item.itemId)
         return {
@@ -108,6 +109,7 @@ const handlePrint = () => {
           <p><strong>Phone:</strong> ${printable.customerPhone}</p>
           <p><strong>Status:</strong> ${printable.status}</p>
           <p><strong>Ordered At:</strong> ${new Date(printable.createdAt).toLocaleDateString()}</p>
+          <p><strong>Car Plate:</strong> ${printable.carPlate}</p>
           <hr />
           <h3>Items</h3>
           <table border="1" cellpadding="6" cellspacing="0" style="width: 100%; border-collapse: collapse;">
@@ -302,7 +304,7 @@ const handlePrint = () => {
                     )}
                     <div className="flex justify-between">
                       <span>Status:</span>
-                      <Badge className={`${getStatusColor(order.status)} border`}>
+                      <Badge className={`{getStatusColor(order.status)} border`}>
                         {order.status || "Unknown"}
                       </Badge>
                     </div>
@@ -312,15 +314,23 @@ const handlePrint = () => {
                 <div>
                   <h3 className="font-semibold mb-3 text-lg border-b pb-2">Order Information</h3>
                   <div className="bg-muted p-4 rounded-lg space-y-2">
-                  <div className="flex justify-between">
-                    <span>Ordered At:</span>
-                    <span className="font-medium">
-                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "N/A"}
-                    </span>
-                  </div>
+                   <div className="flex justify-between">
+                      <span>Ordered At:</span>
+                      <span className="font-medium">
+                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "N/A"}
+                      </span>
+                   </div>
+                    <div className="flex justify-between">
+                      <span>Car Plate:</span>
+                      <span>{order.carPlate}</span>
+                   </div>
+                     
                   </div>
                 </div>
+                
               </div>
+
+
 
               {/* Signature Section */}
               <div>

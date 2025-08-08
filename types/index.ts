@@ -45,6 +45,7 @@ export interface OrderItem {
 }
 
 export interface Order {
+  carPlate: any
   isNewCustomer: any
   id: number
   customerName: string | null

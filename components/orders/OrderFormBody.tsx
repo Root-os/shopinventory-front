@@ -1,18 +1,16 @@
+// components/orders/OrderForm.tsx
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, ArrowLeft, Edit, Save } from "lucide-react"
+import { Plus, Minus, Trash2, ArrowLeft, Edit, Save } from "lucide-react"
 import type { Item, Customer, OrderItem, Order } from "@/types"
 import { useToast } from "@/hooks/use-toast"
-import { X } from "lucide-react";
 
 interface OrderFormProps {
   items: Item[]
@@ -21,18 +19,6 @@ interface OrderFormProps {
   onCancel: () => void
   isEditing?: boolean
   initialOrder?: Order
-}
-
-interface ItemCategory {
-  id: number
-  name: string
-}
-
-interface ExtendedItem extends Item {
-  ItemCategory: {
-    id: number
-    name: string
-  }
 }
 
 export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = false, initialOrder }: OrderFormProps) {
@@ -51,69 +37,14 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
     paymentType: "Cash" as "Cash" | "Credit",
     paid: 0,
     status: "Pending" as "Pending" | "Confirmed" | "Dispatched",
-    carPlate:"",
   })
-  const [categories, setCategories] = useState<ItemCategory[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<string>("")
-  const [categoryItems, setCategoryItems] = useState<ExtendedItem[]>([])
-  const [selectedItems, setSelectedItems] = useState<ExtendedItem[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-  const categorySelectRef = useRef<HTMLButtonElement>(null)
-  
 
-  // Fetch categories on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch(`${API_BASE}/api/item-categories`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-          },
-        })
-        const data = await response.json()
-        setCategories(data)
-      } catch (error) {
-        console.error("Failed to fetch categories:", error)
-        toast({
-          title: "Error",
-          description: "Failed to load categories",
-          variant: "destructive",
-        })
-      }
-    }
-    fetchCategories()
-  }, [toast])
-
-  // Fetch items when category is selected
-  useEffect(() => {
-    if (selectedCategory) {
-      const fetchCategoryItems = async () => {
-        try {
-          const response = await fetch(`${API_BASE}/api/items/category/${selectedCategory}`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-            },
-          })
-          const data = await response.json()
-          setCategoryItems(data)
-        } catch (error) {
-          console.error("Failed to fetch category items:", error)
-          toast({
-            title: "Error",
-            description: "Failed to load category items",
-            variant: "destructive",
-          })
-        }
-      }
-      fetchCategoryItems()
-    }
-  }, [selectedCategory, toast])
-
-  // Initialize form with existing order data
+  // Initialize form with existing order data or add first item for new orders
   useEffect(() => {
     if (isEditing && initialOrder) {
+      // Initialize for editing
       const selectedCustomer = initialOrder.customerId
         ? customers.find((c) => c.id === initialOrder.customerId)
         : null
@@ -130,45 +61,43 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
         name,
         phone,
       })
-      setPaymentData({
-        paymentType: initialOrder.paymentType || "Cash",
-        paid: Number(initialOrder.paid) || 0,
-        status: initialOrder.status || "Pending",
-        carPlate: initialOrder.carPlate || "null"
-      })
-      // Initialize selectedItems from initialOrder
-      if (initialOrder.items && Array.isArray(initialOrder.items)) {
-        const initialSelectedItems = initialOrder.items.map((item) => {
-          const foundItem = items.find((i) => i.id === Number(item.itemId))
-          return {
-            id: Number(item.itemId),
-            name: foundItem?.name || item.itemName || "Unknown Item",
-            categoryId: foundItem?.categoryId || 0,
-            unit: item.unit || "",
-            price: item.price.toString(),
-            quantity: Number(item.quantity),
-            minStockLevel: foundItem?.minStockLevel || 0,
-            createdAt: foundItem?.createdAt || "",
-            updatedAt: foundItem?.updatedAt || "",
-            ItemCategory: {
-              id: foundItem?.categoryId || 0,
-              name: categories.find((c) => c.id === foundItem?.categoryId)?.name || "",
-            },
-          }
-        })
-        setSelectedItems(initialSelectedItems)
-        setOrderItems(
-          initialOrder.items.map((item) => ({
+      setOrderItems(
+        initialOrder.items && Array.isArray(initialOrder.items) && initialOrder.items.length > 0
+          ? initialOrder.items.map((item) => ({
             itemId: Number(item.itemId) || 0,
             quantity: Number(item.quantity) || 1,
             price: Number(item.price) || 0,
             unit: String(item.unit || ""),
             itemName: items.find((i) => i.id === Number(item.itemId))?.name || item.itemName || "Unknown Item",
           }))
-        )
-      }
+          : [
+            {
+              itemId: items.length > 0 ? items[0].id : 0,
+              quantity: 1,
+              price: items.length > 0 ? Number.parseFloat(items[0].price) : 0,
+              unit: items.length > 0 ? items[0].unit : "",
+              itemName: items.length > 0 ? items[0].name : "",
+            },
+          ]
+      )
+      setPaymentData({
+        paymentType: initialOrder.paymentType || "Cash",
+        paid: Number(initialOrder.paid) || 0,
+        status: initialOrder.status || "Pending",
+      })
+    } else if (!isEditing && items.length > 0 && orderItems.length === 0) {
+      // Auto-add first item for new orders
+      setOrderItems([
+        {
+          itemId: items[0].id,
+          quantity: 1,
+          price: Number.parseFloat(items[0].price),
+          unit: items[0].unit,
+          itemName: items[0].name,
+        },
+      ])
     }
-  }, [isEditing, initialOrder, items, customers, categories])
+  }, [isEditing, initialOrder, items, orderItems.length, customers])
 
   const handleCustomerTypeChange = (newIsNewCustomer: boolean) => {
     if (newIsNewCustomer) {
@@ -214,32 +143,22 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
     }
   }
 
-  const handleItemSelection = (item: ExtendedItem) => {
-    setSelectedItems((prev) => {
-      if (prev.some((i) => i.id === item.id)) {
-        return prev.filter((i) => i.id !== item.id)
-      } else {
-        const newItem = { ...item, quantity: 1 }
-        const newOrderItem: OrderItem = {
-          itemId: item.id,
-          quantity: 1,
-          price: Number.parseFloat(item.price),
-          unit: item.unit,
-          itemName: item.name,
-        }
-        setOrderItems((prevItems) => [...prevItems, newOrderItem])
-        return [...prev, newItem]
-      }
-    })
-  }
-  
-  const handleAddItemClick = () => {
-    setSelectedCategory("") // reset to open selector
-    setTimeout(() => {
-      categorySelectRef.current?.focus()
-    }, 100)
+  const addItem = () => {
+    setOrderItems([
+      ...orderItems,
+      {
+        itemId: items.length > 0 ? items[0].id : 1,
+        quantity: 1,
+        price: items.length > 0 ? Number.parseFloat(items[0].price) : 0,
+        unit: items.length > 0 ? items[0].unit : "",
+        itemName: items.length > 0 ? items[0].name : "",
+      },
+    ])
   }
 
+  const removeItem = (index: number) => {
+    setOrderItems(orderItems.filter((_, i) => i !== index))
+  }
 
   const updateItem = (index: number, field: keyof OrderItem, value: any) => {
     const updated = [...orderItems]
@@ -257,29 +176,21 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
     setOrderItems(updated)
   }
 
-  const updateItemQuantity = (itemId: number, quantity: number) => {
-    setSelectedItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId ? { ...item, quantity: Math.max(1, quantity) } : item
-      )
-    )
-    setOrderItems((prev) =>
-      prev.map((orderItem) =>
-        orderItem.itemId === itemId
-          ? { ...orderItem, quantity: Math.max(1, quantity) }
-          : orderItem
-      )
-    )
-  }
-
   const calculateTotal = () => {
-    return selectedItems.reduce((total, item) => total + Number(item.quantity) * Number.parseFloat(item.price), 0)
+    return orderItems.reduce((total, item) => total + Number(item.quantity) * Number(item.price), 0)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (selectedItems.length === 0) {
+    console.log("🔍 Form submission started", { isEditing })
+    console.log("🔍 Order items:", orderItems)
+    console.log("🔍 Customer data:", customerData)
+    console.log("🔍 Original customer data:", originalCustomerData)
+    console.log("🔍 Payment data:", paymentData)
+    console.log("🔍 Is new customer:", isNewCustomer)
+
+    if (orderItems.length === 0) {
       toast({ title: "Error", description: "Please add at least one item", variant: "destructive" })
       return
     }
@@ -296,16 +207,19 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
       }
     }
 
-    const invalidItems = selectedItems.filter((item) => {
-      const itemId = Number(item.id)
+    const invalidItems = orderItems.filter((item) => {
+      const itemId = Number(item.itemId)
       const quantity = Number(item.quantity)
-      const price = Number.parseFloat(item.price)
+      const price = Number(item.price)
       const unit = String(item.unit).trim()
+
+      console.log(`🔍 Validating item: itemId=${itemId}, quantity=${quantity}, price=${price}, unit="${unit}"`)
 
       return !itemId || itemId === 0 || !quantity || quantity <= 0 || !price || price <= 0 || !unit
     })
 
     if (invalidItems.length > 0) {
+      console.log("❌ Invalid items found:", invalidItems)
       toast({
         title: "Error",
         description: "Please ensure all items have valid ID, quantity, price, and unit",
@@ -319,10 +233,10 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
     try {
       const orderData: any = {
         isNewCustomer: Boolean(isNewCustomer),
-        items: selectedItems.map((item) => ({
-          itemId: Number(item.id),
+        items: orderItems.map((item) => ({
+          itemId: Number(item.itemId),
           quantity: Number(item.quantity),
-          price: Number.parseFloat(item.price),
+          price: Number(item.price),
           unit: String(item.unit).trim(),
         })),
         paid: Number(paymentData.paid),
@@ -333,9 +247,10 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
       if (isNewCustomer) {
         orderData.customerName = String(customerData.name).trim()
         orderData.customerPhone = String(customerData.phone).trim()
-        orderData.customerId = undefined
+        orderData.customerId = undefined // Ensure customerId is not sent for new customers
       } else {
         orderData.customerId = Number(customerData.customerId)
+        // Only include changed fields
         if (customerData.name.trim() !== originalCustomerData.name.trim()) {
           orderData.customerName = String(customerData.name).trim() || undefined
         }
@@ -343,6 +258,8 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
           orderData.customerPhone = String(customerData.phone).trim() || undefined
         }
       }
+
+      console.log("🚀 Final order data to submit:", JSON.stringify(orderData, null, 2))
 
       await onSubmit(orderData)
       toast({
@@ -391,8 +308,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Customer Selection */}
           <div className="space-y-4">
-              {!isEditing && ( 
-          <div className="flex space-x-4">
+            <div className="flex space-x-4">
               <Button
                 type="button"
                 variant={isNewCustomer ? "default" : "outline"}
@@ -409,7 +325,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
               >
                 Existing Customer
               </Button>
-            </div>)}
+            </div>
 
             {isNewCustomer ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -482,115 +398,98 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
                 )}
               </div>
             )}
-          </div> 
-          {/* Category and Item Selection */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Select Items</h3>
-            <Select onValueChange={setSelectedCategory} value={selectedCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id.toString()}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          </div>
 
-            {selectedCategory && (
-              <div className="space-y-2">
-                <h4 className="text-md font-medium">Available Items</h4>
-                <div className="flex flex-wrap gap-4"> {/* flex row + wrapping + spacing */}
-                  {categoryItems.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`item-${item.id}`}
-                        checked={selectedItems.some((i) => i.id === item.id)}
-                        onCheckedChange={() => handleItemSelection(item)}
-                      />
-                      <label htmlFor={`item-${item.id}`}>
-                        {item.name}
-                      </label>
-                    </div>
-                  ))}
+          {/* Order Items */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Order Items</h3>
+              <Button type="button" onClick={addItem} size="sm" disabled={items.length === 0}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Item
+              </Button>
+            </div>
+
+            {items.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+                <p>No items available. Please add items to inventory first.</p>
+              </div>
+            )}
+
+            {orderItems.map((orderItem, index) => (
+              <div key={index} className="grid grid-cols-12 gap-2 items-end p-4 border rounded-lg bg-muted/20">
+                <div className="col-span-4">
+                  <Label>Item *</Label>
+                  <Select
+                    value={orderItem.itemId.toString()}
+                    onValueChange={(value) => updateItem(index, "itemId", value)}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select item" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {items
+                        .filter((item) => item.quantity > 0)
+                        .map((item) => (
+                          <SelectItem key={item.id} value={item.id.toString()}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-2">
+                  <Label>Quantity *</Label>
+                  <Input
+                    type="number"
+                    step="1"
+                    min="1"
+                    value={orderItem.quantity}
+                    onChange={(e) =>
+                      updateItem(index, "quantity", Math.max(1, Number(e.target.value) || 1))
+                    }
+                    required
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label>Unit Price *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={orderItem.price}
+                    onChange={(e) => updateItem(index, "price", Math.max(0.01, Number(e.target.value) || 0.01))}
+                    required
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <Label>Unit *</Label>
+                  <Input
+                    value={orderItem.unit}
+                    onChange={(e) => updateItem(index, "unit", e.target.value)}
+                    placeholder="kg, pcs, etc."
+                    required
+                  />
+                </div>
+
+                <div className="col-span-1">
+                  <Label>Total</Label>
+                  <div className="text-sm font-medium p-2 bg-muted rounded">
+                    {(Number(orderItem.quantity) * Number(orderItem.price)).toFixed(2)} ETB
+                  </div>
+                </div>
+
+                <div className="col-span-1">
+                  <Button type="button" variant="destructive" size="sm" onClick={() => removeItem(index)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
-            )}
-            {selectedItems.length > 0 && (
-              <div>
-                <h4 className="text-md font-medium mb-2">Selected Items</h4>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Unit</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedItems.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>{item.unit}</TableCell>
-                        <TableCell>  
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0.01"
-                                value={item.price}
-                                onChange={(e) => {
-                                  const newPrice = Math.max(0.01, Number(e.target.value) || 0.01);
-                                  setSelectedItems((prev) =>
-                                    prev.map((si) =>
-                                      si.id === item.id ? { ...si, price: newPrice.toString() } : si
-                                    )
-                                  );
-                                  setOrderItems((prev) =>
-                                    prev.map((oi) =>
-                                      oi.itemId === item.id ? { ...oi, price: newPrice } : oi
-                                    )
-                                  );
-                                }}
-                                required
-                              />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            min="1"
-                            value={item.quantity || 1}
-                            onChange={(e) => updateItemQuantity(item.id, parseInt(e.target.value) || 1)}
-                            className="w-16 p-1 border rounded"
-                          />
-                        </TableCell>
-                        <TableCell>
-                        {(Number(item.quantity) * Number(item.price)).toFixed(2)} ETB
-                      </TableCell>
-                      <TableCell>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedItems((prev) => prev.filter((si) => si.id !== item.id));
-                            setOrderItems((prev) => prev.filter((oi) => oi.itemId !== item.id));
-                          }}
-                          aria-label={`Remove ${item.name}`}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <X size={18} />
-                        </button>
-                      </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+            ))}
           </div>
-           
+
           {/* Payment Information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
@@ -642,29 +541,10 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
                 </SelectContent>
               </Select>
             </div>
-
-            {isEditing && (
-  <div className="space-y-2">
-    <Label htmlFor="carPlate">Car Plate</Label>
-    <Input
-      id="carPlate"
-      type="text"
-      value={paymentData.carPlate || ""}
-      onChange={(e) =>
-        setPaymentData({
-          ...paymentData,
-          carPlate: e.target.value,
-        })
-      }
-      placeholder="Enter car plate number"
-    />
-  </div>
-)}
-
           </div>
 
           {/* Order Summary */}
-          {selectedItems.length > 0 && (
+          {orderItems.length > 0 && (
             <div className="bg-muted p-4 rounded-lg space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
@@ -689,7 +569,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
             <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || selectedItems.length === 0}>
+            <Button type="submit" disabled={isSubmitting || orderItems.length === 0}>
               {isSubmitting ? (
                 isEditing ? (
                   "Updating Order..."
