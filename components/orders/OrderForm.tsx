@@ -644,22 +644,22 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
             </div>
 
             {isEditing && (
-  <div className="space-y-2">
-    <Label htmlFor="carPlate">Car Plate</Label>
-    <Input
-      id="carPlate"
-      type="text"
-      value={paymentData.carPlate || ""}
-      onChange={(e) =>
-        setPaymentData({
-          ...paymentData,
-          carPlate: e.target.value,
-        })
-      }
-      placeholder="Enter car plate number"
-    />
-  </div>
-)}
+            <div className="space-y-2">
+              <Label htmlFor="carPlate">Car Plate</Label>
+              <Input
+                id="carPlate"
+                type="text"
+                value={paymentData.carPlate || ""}
+                onChange={(e) =>
+                  setPaymentData({
+                    ...paymentData,
+                    carPlate: e.target.value,
+                  })
+                }
+                placeholder="Enter car plate number"
+              />
+            </div>
+          )}
 
           </div>
 
