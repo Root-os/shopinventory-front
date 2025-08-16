@@ -122,6 +122,8 @@ class OrderService {
       paid: number
       paymentType: "Cash" | "Credit" // Restrict to valid ENUM values
       status: "Pending" | "Confirmed" | "Dispatched"
+      carPlate?: string
+      
     },
     token: string,
   ): Promise<any> {
@@ -149,6 +151,7 @@ class OrderService {
       paid: Number(orderData.paid),
       paymentType: String(orderData.paymentType),
       status: String(orderData.status) as "Pending" | "Confirmed" | "Dispatched",
+      carPlate: orderData.carPlate?.trim() || null,
     }
 
     return apiService.put(`/api/orders/${id}`, processedOrderData, token)

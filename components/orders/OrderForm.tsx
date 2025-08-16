@@ -84,7 +84,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
       }
     }
     fetchCategories()
-  }, [toast])
+  }, [toast]) 
 
   // Fetch items when category is selected
   useEffect(() => {
@@ -134,7 +134,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
         paymentType: initialOrder.paymentType || "Cash",
         paid: Number(initialOrder.paid) || 0,
         status: initialOrder.status || "Pending",
-        carPlate: initialOrder.carPlate || "null"
+        carPlate: initialOrder.carPlate || ""
       })
       // Initialize selectedItems from initialOrder
       if (initialOrder.items && Array.isArray(initialOrder.items)) {
@@ -240,7 +240,6 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
     }, 100)
   }
 
-
   const updateItem = (index: number, field: keyof OrderItem, value: any) => {
     const updated = [...orderItems]
     updated[index] = { ...updated[index], [field]: value }
@@ -253,7 +252,6 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
         updated[index].itemName = item.name
       }
     }
-
     setOrderItems(updated)
   }
 
@@ -313,9 +311,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
       })
       return
     }
-
     setIsSubmitting(true)
-
     try {
       const orderData: any = {
         isNewCustomer: Boolean(isNewCustomer),
@@ -344,6 +340,8 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
         }
       }
 
+      orderData.carPlate = paymentData.carPlate?.trim() || null
+
       await onSubmit(orderData)
       toast({
         title: "Success",
@@ -364,6 +362,8 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
   const total = calculateTotal()
   const balance = Number(paymentData.paid) - total
 
+  
+
   return (
     <Card className="max-w-4xl mx-auto">
       <CardHeader>
@@ -376,7 +376,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
             {isEditing ? (
               <>
                 <Edit className="w-5 h-5" />
-                Edit Order #{initialOrder?.id || "N/A"}
+                Edit Order 
               </>
             ) : (
               <>
@@ -502,7 +502,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
             {selectedCategory && (
               <div className="space-y-2">
                 <h4 className="text-md font-medium">Available Items</h4>
-                <div className="flex flex-wrap gap-4"> {/* flex row + wrapping + spacing */}
+                <div className="flex flex-wrap gap-4"> 
                   {categoryItems.map((item) => (
                     <div key={item.id} className="flex items-center space-x-2">
                       <Checkbox
@@ -649,18 +649,17 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
               <Input
                 id="carPlate"
                 type="text"
-                value={paymentData.carPlate || ""}
+                value={paymentData.carPlate ?? ""}
+                placeholder="Enter car plate"
                 onChange={(e) =>
                   setPaymentData({
                     ...paymentData,
                     carPlate: e.target.value,
                   })
                 }
-                placeholder="Enter car plate number"
               />
             </div>
           )}
-
           </div>
 
           {/* Order Summary */}

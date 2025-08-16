@@ -5,15 +5,9 @@ import { CustomerLoginForm } from "@/components/auth/CustomerLogin"
 import { CustomerDashboard } from "@/components/dashboard/customerDashboard"
 
 export default function CustomerPage() {
-  const { isAuthenticated, isLoading } = useCustomerAuth()
+  const { isAuthenticated } = useCustomerAuth()
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-b-2 border-primary rounded-full" />
-      </div>
-    )
-  }
+  // Remove loading state handling since isLoading is not available
 
   if (!isAuthenticated) {
     return <CustomerLoginForm />
