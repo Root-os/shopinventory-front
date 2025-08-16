@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://merkatoback.merimasterbingo.com"
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://merkatosales.habeshabingo.com"
 
 class ApiService {
   private getHeaders(token?: string) {
