@@ -59,7 +59,7 @@ export function OrderForm({ items, customers, onSubmit, onCancel, isEditing = fa
   const [selectedItems, setSelectedItems] = useState<ExtendedItem[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://merkatosales.habeshabingo.com";
   const categorySelectRef = useRef<HTMLButtonElement>(null)
   
 
